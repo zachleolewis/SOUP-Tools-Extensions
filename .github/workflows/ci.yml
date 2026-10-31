@@ -1,0 +1,26 @@
+# Every push and pull request: the examples type-check against types/soup.d.ts and build, every TypeScript block in the docs
+# type-checks against the same typings, and every relative link in the docs points at a file.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: The template builds and type-checks
+        working-directory: template
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build

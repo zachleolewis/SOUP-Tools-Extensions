@@ -1,0 +1,10 @@
+{
+  "id": "riot-party-tools",
+  "name": "Riot Party Tools",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "Shows the size of your party on its row in Settings, updated from the Riot Client's events. Read-only.",
+  "author": "SOUP",
+  "uses": ["riot"]
+}

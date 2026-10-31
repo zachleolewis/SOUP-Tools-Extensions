@@ -1,0 +1,10 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "A tab that greets the signed-in player, and an api other extensions can use.",
+  "author": "SOUP",
+  "uses": ["riot"]
+}

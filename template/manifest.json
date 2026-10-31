@@ -1,0 +1,10 @@
+{
+  "id": "my-extension",
+  "name": "My Extension",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "What it does, in one sentence.",
+  "author": "Your name",
+  "repo": "your-github-name/my-soup-extension"
+}

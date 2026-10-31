@@ -1,0 +1,41 @@
+# Pushing a tag like v1.0.0 builds the extension and attaches manifest.json, main.js, styles.css (if there is one) and extension.zip to a
+# GitHub release. SOUP installs from, and updates from, that release. The tag must equal "version" in manifest.json.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - name: The tag must equal the manifest version
+        run: |
+          version=$(node -p "require('./manifest.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ] && [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match manifest version $version" >&2
+            exit 1
+          fi
+      - name: Pack extension.zip
+        run: |
+          cd dist
+          zip -r ../extension.zip manifest.json main.js $(ls styles.css 2>/dev/null)
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/manifest.json
+            dist/main.js
+            dist/styles.css
+            extension.zip
