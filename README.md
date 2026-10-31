@@ -40,6 +40,15 @@ npm run build
 
 `dist/` now holds a working extension (`manifest.json`, `main.js`). In SOUP: **Settings > Extensions**, turn **Restricted mode** off, turn **Developer** on, press **Link a working folder** and choose `dist/`. Open the command palette with **Ctrl+K** and run "My Extension: say hello". Edit `src/main.ts`, run `npm run build` again (or leave `npm run dev` running) and SOUP reloads the extension by itself.
 
+To try a finished extension instead, build an example from the repository root:
+
+```
+npm install
+npm run build:example -- examples/hello-world
+```
+
+`dist/hello-world/` is ready to install in SOUP ("From a folder"). All examples: `npm run build:examples`.
+
 The full walkthrough is [docs/01-getting-started.md](docs/01-getting-started.md).
 
 ## What is here

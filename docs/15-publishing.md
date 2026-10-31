@@ -30,7 +30,7 @@ Rules of thumb:
 
 - A release is **immutable** in practice. Do not replace the files of a tag people already installed; publish a new version.
 - Write release notes: the install dialog shows the README, and people read the release page.
-- Keep the file small. SOUP refuses a download over 200 MB, and an extension that is a few kilobytes loads instantly.
+- Keep it small. SOUP refuses a zip that unpacks to more than 200 MB (or has more than 5 000 files) and a loose file over 50 MB; an extension of a few kilobytes loads instantly.
 
 ## Versions
 
