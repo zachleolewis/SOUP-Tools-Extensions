@@ -83,7 +83,7 @@ In the consumer's manifest:
 
 ## A walkthrough
 
-The `examples` folder has a pair: [`team-roster`](../examples/team-roster/src/main.ts) keeps a list and offers it, [`roster-consumer`](../examples/roster-consumer/src/main.ts) shows it in a tab. Build both, install both ("From a folder" for each `dist/<name>`), turn them on: the Roster tab lists the names, and the command "Add the signed-in player to the roster" from the provider makes the consumer's tab update at once. Turn `team-roster` off in Settings and watch `roster-consumer` report that it is blocked.
+[`scrim-notes`](../examples/scrim-notes/src/main.tsx) is a provider: its `api` offers `notesFor(matchId)`, `open(matchId)` and `exportMarkdown(path)`, and it is declared in the class as `api: ScrimNotesApi`. Build it (`npm run build:example -- examples/scrim-notes`), install `dist/scrim-notes` ("From a folder"), turn it on, and add a note from the Library. A second extension reads it the way the consumer above does: `app.extensions.get("scrim-notes")`, then `.api.notesFor(matchId)`, and lists the notes next to whatever it shows for that match.
 
 ## Limits
 

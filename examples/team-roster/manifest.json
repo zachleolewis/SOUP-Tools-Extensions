@@ -1,9 +1,0 @@
-{
-  "id": "team-roster",
-  "name": "Team Roster",
-  "version": "1.0.0",
-  "minAppVersion": "2.3.0",
-  "apiVersion": "^1.0",
-  "description": "A list of names other extensions can read and change through its api.",
-  "author": "SOUP"
-}

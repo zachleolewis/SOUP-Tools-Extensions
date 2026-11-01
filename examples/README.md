@@ -1,14 +1,11 @@
 # Examples
 
-Complete extensions. Build one with `npm run build:example -- examples/<name>` (or all with `npm run build:examples`); the result is in `dist/<name>/`. In SOUP: Settings > Extensions > From a folder (or link it with the Developer switch).
+Four finished extensions, the kind a team would install: each is useful on its own, looks like SOUP, and teaches a different part of the API. Copy whatever you need; the source is commented the way the guides teach.
 
-| Example | Shows |
-|---|---|
-| [`hello-world`](hello-world/src/main.tsx) | A tab written in React, a stylesheet, the signed-in player, an `api` for other extensions |
-| [`scrim-notes`](scrim-notes/src/main.ts) | A tab, a settings section, a Library action and badge, a command with a shortcut, an event, saved data per profile, status text |
-| [`match-exporter`](match-exporter/src/main.ts) | A Library folder action: the Library module's API, a save dialog, `app.fs.write` |
-| [`riot-party-tools`](riot-party-tools/src/main.ts) | `app.riot.remote` and `onLocalEvent` (read only). Read [guide 9](../docs/09-riot.md) first |
-| [`team-roster`](team-roster/src/main.ts) and [`roster-consumer`](roster-consumer/src/main.ts) | Two extensions working together: a public `api`, an event, `dependencies` |
-| [`helper-process`](helper-process/src/main.ts) | Starting a program, talking to it over standard input and output |
+| Example | What it does | What it teaches |
+|---|---|---|
+| [`scrim-notes`](scrim-notes) | Notes on any match: per round, tagged, searchable, exported to Markdown | A React UI with SOUP's kit, data saved per profile, the Library (action and badge), the Matches tab, a command with a shortcut, a settings section, an `api` for other extensions ([guide 5](../docs/05-ui.md), [6](../docs/06-settings-and-data.md)) |
 
-Each example is checked in CI: it type-checks against `types/soup.d.ts` and builds.
+Build one with `npm run build:example -- examples/<name>` (or all of them with `npm run build:examples`); the result is in `dist/<name>/`. In SOUP: **Settings > Extensions > From a folder**, pick `dist/<name>`. Each example's README says what it touches (files, network, Riot) and how its source is laid out.
+
+CI type-checks each example against `types/soup.d.ts`, builds it, and runs the logic tests in [`tests/`](../tests). SOUP's own self-test installs all four from `dist/` and drives them with real clicks and typing.

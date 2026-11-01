@@ -44,10 +44,10 @@ To try a finished extension instead, build an example from the repository root:
 
 ```
 npm install
-npm run build:example -- examples/hello-world
+npm run build:example -- examples/scrim-notes
 ```
 
-`dist/hello-world/` is ready to install in SOUP ("From a folder"). All examples: `npm run build:examples`.
+`dist/scrim-notes/` is ready to install in SOUP ("From a folder"). All examples: `npm run build:examples`.
 
 The full walkthrough is [docs/01-getting-started.md](docs/01-getting-started.md).
 
@@ -58,7 +58,7 @@ The full walkthrough is [docs/01-getting-started.md](docs/01-getting-started.md)
 | [`docs/`](docs/) | 18 short guides, from getting started to responsibility. [`docs/api/`](docs/api/README.md) is the reference generated from the typings |
 | [`types/soup.d.ts`](types/soup.d.ts) | The typings for `import ... from "soup"`. Every TypeScript block in the docs is checked against this file in CI |
 | [`template/`](template/) | A starter project: Vite and TypeScript, `soup` and React provided by SOUP, and a GitHub Action that builds a release when you push a tag |
-| [`examples/`](examples/) | `hello-world`, `scrim-notes`, `match-exporter`, `riot-party-tools`, `team-roster` with `roster-consumer`, and `helper-process` |
+| [`examples/`](examples/) | Finished extensions you can install and copy: `scrim-notes` (more are coming in the same folder) |
 
 ## Stability
 

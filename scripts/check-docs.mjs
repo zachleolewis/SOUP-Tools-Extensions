@@ -15,7 +15,10 @@ const work = path.join(root, ".doccheck");
 rmSync(work, { recursive: true, force: true });
 mkdirSync(work, { recursive: true });
 
-const files = ["README.md", "template/README.md", "examples/README.md", ...readdirSync(path.join(root, "docs")).filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
+const exampleReadmes = readdirSync(path.join(root, "examples"), { withFileTypes: true })
+  .filter((e) => e.isDirectory() && existsSync(path.join(root, "examples", e.name, "README.md")))
+  .map((e) => `examples/${e.name}/README.md`);
+const files = ["README.md", "template/README.md", "examples/README.md", ...exampleReadmes, ...readdirSync(path.join(root, "docs")).filter((f) => f.endsWith(".md")).map((f) => `docs/${f}`)];
 const origin = new Map(); // generated file -> [md file, first line of the block]
 const generated = [];
 const problems = [];

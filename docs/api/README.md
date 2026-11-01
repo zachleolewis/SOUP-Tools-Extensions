@@ -78,9 +78,11 @@ export class Plugin {
   /** A section in Settings, titled by the tab's `name` (default: the extension's name). */
   addSettingTab(tab: SettingTab): Handle;
   addLibraryReplayAction(o: ReplayActionOptions): Handle;
-  addLibraryReplayBadge(o: ReplayBadgeOptions): Handle;
+  /** A chip next to the replay's name on its Library tile. Call the returned `refresh()` when what `render` answers has changed (a note was added). */
+  addLibraryReplayBadge(o: ReplayBadgeOptions): Handle & { refresh(): void };
   addLibraryFolderAction(o: FolderActionOptions): Handle;
   addLibraryToolbarAction(o: ToolbarActionOptions): Handle;
+  /** A button on each row of the Matches tab (match history). */
   addMatchRowAction(o: MatchRowActionOptions): Handle;
   /** A command in the palette (Ctrl+K) and an optional keyboard shortcut. */
   addCommand(spec: CommandSpec): Handle;

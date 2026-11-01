@@ -14,7 +14,7 @@
     "paths": {
       "soup": ["./types/soup.d.ts"]
     },
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["examples", "types"]
+  "include": ["examples", "tests", "types"]
 }

@@ -1,7 +1,7 @@
 // Builds an example the way the template does: one ES module main.js that reads `soup` and React from SOUP (soup-externals.mjs),
 // styles.css when the example has styles, and manifest.json next to them. The result is a folder SOUP can install ("From a folder").
 //
-//   node scripts/build-example.mjs examples/hello-world      -> dist/hello-world/
+//   node scripts/build-example.mjs examples/scrim-notes      -> dist/scrim-notes/
 //   node scripts/build-example.mjs --all                     -> every folder under examples/
 
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
@@ -33,6 +33,8 @@ export async function buildExample(dir) {
   const css = readdirSync(tmp).find((f) => f.endsWith(".css"));
   if (css) cpSync(path.join(tmp, css), path.join(out, "styles.css"));
   cpSync(path.join(src, "manifest.json"), path.join(out, "manifest.json"));
+  // SOUP shows README.md in the install dialog ("what am I about to install?"), so it travels with the extension.
+  if (existsSync(path.join(src, "README.md"))) cpSync(path.join(src, "README.md"), path.join(out, "README.md"));
   rmSync(tmp, { recursive: true, force: true });
   return out;
 }
@@ -42,6 +44,8 @@ if (args.length === 0) {
   console.error("usage: node scripts/build-example.mjs <examples/name> | --all");
   process.exit(2);
 }
+// `--all` starts from an empty dist\, so a folder of an example that was removed or renamed never lingers there.
+if (args[0] === "--all") rmSync(path.join(root, "dist"), { recursive: true, force: true });
 const dirs = args[0] === "--all" ? readdirSync(path.join(root, "examples"), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => `examples/${e.name}`) : [args[0]];
 for (const d of dirs) {
   const out = await buildExample(d);

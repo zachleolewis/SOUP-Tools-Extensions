@@ -1,10 +1,11 @@
 {
   "id": "scrim-notes",
   "name": "Scrim Notes",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "minAppVersion": "2.3.0",
   "apiVersion": "^1.0",
-  "description": "Notes on every scrim: a tab, a settings section, a Library action and badge, a command, saved data.",
+  "description": "Write notes on any match: per round, tagged, searchable, kept per profile and exported to Markdown.",
   "author": "SOUP",
+  "uses": ["filesystem"],
   "requiresModules": ["library"]
 }

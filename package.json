@@ -5,8 +5,9 @@
   "description": "Docs, typings, a template and examples for SOUP extensions.",
   "type": "module",
   "scripts": {
-    "check": "npm run check:types && npm run check:docs && npm run build:examples",
+    "check": "npm run check:types && npm run check:logic && npm run check:docs && npm run build:examples",
     "check:types": "tsc -p tsconfig.json --noEmit",
+    "check:logic": "node --experimental-strip-types --test \"tests/*.test.ts\"",
     "check:docs": "node scripts/check-docs.mjs",
     "build:examples": "node scripts/build-example.mjs --all",
     "build:example": "node scripts/build-example.mjs"

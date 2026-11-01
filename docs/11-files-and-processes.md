@@ -100,7 +100,39 @@ export default class Helper extends Plugin {
 }
 ```
 
-[`examples/helper-process`](../examples/helper-process/src/main.ts) is a complete extension that uses a PowerShell one-liner as the helper so it runs anywhere. A helper that listens on a local port is also fine: reach it with `app.requestUrl("http://127.0.0.1:PORT/...")`.
+A complete extension needs no helper of its own to try this: a PowerShell one-liner answers each line it reads with `echo:<line>`, so it runs on any Windows PC.
+
+```ts
+import { Notice, Plugin } from "soup";
+
+export default class HelperProcess extends Plugin {
+  async onload() {
+    const script = "while (($l = [Console]::In.ReadLine()) -ne $null) { [Console]::Out.WriteLine('echo:' + $l) }";
+    const helper = await this.app.process.spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", script]);
+
+    let heard = 0;
+    helper.stdout.on((line) => {
+      heard++;
+      this.addStatusText(`heard ${heard} lines, last: ${line}`);
+    });
+    helper.stderr.on((line) => this.app.log.warn(`helper said on stderr: ${line}`));
+
+    // The exit code arrives once the program ended (also when SOUP stopped it).
+    void helper.wait().then((code) => this.app.log.info(`the helper ended with code ${code}`));
+
+    this.addCommand({
+      id: "say-hello",
+      name: "Helper Process: send a line",
+      callback: async () => {
+        await helper.write("hello\n");
+        new Notice("Sent hello to the helper");
+      },
+    });
+  }
+}
+```
+
+SOUP stops the program when the extension unloads or SOUP exits, so there is nothing to clean up. A helper that listens on a local port is also fine: reach it with `app.requestUrl("http://127.0.0.1:PORT/...")`.
 
 ## Opening files and folders
 
