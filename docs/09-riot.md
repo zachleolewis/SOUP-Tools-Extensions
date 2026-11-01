@@ -81,6 +81,10 @@ try {
 }
 ```
 
+## An example that stays inside the line
+
+[`examples/session-tracker`](../examples/session-tracker/src/source.ts) is the pattern to copy: it asks only for the signed-in account's own match history and rating changes (`GET` calls through `app.riot.remote`), never looks up other players or anything Riot hides, reads when something happened and at most every two minutes, never while a match is being played, and treats a missing Riot Client as a normal state (the header says `Not signed in`). Its Riot access is in one file behind a small interface, so everything else can be tested without a Riot Client.
+
 ## What SOUP logs
 
 Each call writes one line to SOUP's log under your extension's id, for example `[ext-my-extension] Riot remote call: GET pd /mmr/v1/players/<puuid>`: the method, the service and the path, never the query string, the headers, the body or a token. The debug console's Extensions tab (Ctrl+Shift+D) lists the last 50.

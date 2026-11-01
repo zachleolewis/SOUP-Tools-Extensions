@@ -1,0 +1,11 @@
+{
+  "id": "session-tracker",
+  "name": "Session Tracker",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "Today's wins, losses and rating change in the header, with a list of the session's matches. Read only, your own account only.",
+  "author": "SOUP",
+  "uses": ["riot", "network"],
+  "requiresModules": ["riot-client", "match-capture"]
+}

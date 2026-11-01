@@ -1,0 +1,35 @@
+/* Session Tracker. Drawn from SOUP's theme variables. The header chip matches the pills beside it: square, 3px black border, mono caps. */
+
+.st-chip { display: inline-flex; align-items: center; gap: 8px; border: 3px solid #000; background: hsl(var(--forest-900)); color: hsl(var(--foreground)); padding: 4px 10px; box-shadow: 2px 2px 0 0 #000; font-family: "Space Mono", monospace; font-size: 10px; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap; }
+.st-chip:hover { background: hsl(var(--forest-500)); }
+.st-dot { width: 8px; height: 8px; background: hsl(var(--foreground) / 0.45); }
+.st-dot[data-tone="up"] { background: hsl(var(--forest-300)); }
+.st-dot[data-tone="down"] { background: hsl(var(--warning)); }
+.st-dot[data-tone="even"] { background: hsl(var(--foreground)); }
+
+.st-panel { display: flex; flex-direction: column; border: 3px solid #000; background: hsl(var(--forest-900)); box-shadow: 5px 5px 0 0 #000; color: hsl(var(--foreground)); }
+.st-toolbar { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 3px solid #000; background: hsl(var(--forest-700)); }
+.st-title { font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+.st-pill { border: 2px solid #000; background: hsl(var(--forest-900)); box-shadow: 2px 2px 0 0 #000; padding: 1px 10px; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; }
+.st-grow { flex: 1; min-width: 0; }
+.st-dim { margin: 0; font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+.st-foot { padding: 10px 20px 14px; }
+
+.st-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; padding: 18px 20px 6px; }
+@media (max-width: 760px) { .st-summary { grid-template-columns: 1fr; } }
+.st-card { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border: 2px solid #000; background: hsl(var(--forest-700)); box-shadow: 3px 3px 0 0 #000; }
+.st-label { font-family: "Space Mono", monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: hsl(var(--foreground) / 0.7); }
+.st-big { font-family: "Space Grotesk", sans-serif; font-size: 1.6rem; font-weight: 700; line-height: 1.15; }
+
+.st-table { width: calc(100% - 40px); margin: 14px 20px; border-collapse: separate; border-spacing: 0 8px; font-size: 0.85rem; }
+.st-table th { text-align: left; font-family: "Space Mono", monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: hsl(var(--foreground) / 0.65); padding: 0 10px; }
+.st-table td { padding: 9px 10px; background: hsl(var(--forest-700)); border-top: 2px solid #000; border-bottom: 2px solid #000; font-weight: 600; }
+.st-table td:first-child { border-left: 2px solid #000; }
+.st-table td:last-child { border-right: 2px solid #000; }
+.st-num { text-align: right !important; font-family: "Space Mono", monospace; font-weight: 700; }
+.st-result { display: inline-block; min-width: 46px; padding: 0 8px; text-align: center; border: 2px solid #000; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; background: hsl(var(--forest-900)); }
+.st-win { background: hsl(var(--forest-300)); color: #000; }
+.st-loss { background: hsl(var(--warning)); color: #000; }
+
+.st-notes { list-style: none; margin: 0 20px 10px; padding: 8px 10px; border: 2px solid #000; background: hsl(var(--forest-700)); font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--warning)); display: flex; flex-direction: column; gap: 4px; }
+.st-warn { margin: 0 20px 8px; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; color: hsl(var(--warning)); }
