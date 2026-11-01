@@ -11,7 +11,7 @@ Write notes on any match: per round, tagged, searchable, and exported to Markdow
 - **Matches tab: Add note.** A button on each row of the match history, for a match that is not in your Library.
 - **Command.** `Scrim Notes: new note for the last match` (`Ctrl+Alt+N`, or `Ctrl+K` and type it): the newest match from your history, or the newest replay in your Library when the Riot Client is not running.
 - **Export to Markdown.** One match or all of them, to a file you choose.
-- **Settings.** The tag a new note starts with, whether to show the badge, and **Delete all notes in this profile**.
+- **Settings page** (the cog on its row in Settings > Extensions). The tag a new note starts with, whether to show the badge, and **Delete all notes in this profile**.
 - **For other extensions.** `app.extensions.get("scrim-notes")?.api` offers `notesFor(matchId)`, `open(matchId)` and `exportMarkdown(path)`, and the event `scrim-notes/changed` (`{ matchId, count }`) tells other extensions when a match's notes change. The [heatmap](../heatmap) example uses both.
 
 ## What it accesses

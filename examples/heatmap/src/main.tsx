@@ -14,6 +14,7 @@
 
 import { Plugin, debounce } from "soup";
 import { Controller } from "./controller";
+import { HeatmapSettings } from "./settings";
 import { HeatmapTab, setCtx } from "./ui";
 import "./styles.css";
 
@@ -23,7 +24,13 @@ export default class Heatmap extends Plugin {
   async onload() {
     setCtx({ plugin: this, ctrl: this.ctrl });
 
+    // The settings saved for this profile come first: the tab starts from the source they name.
+    await this.ctrl.loadPrefs();
+
     this.addTab({ id: "heatmap", label: "Heatmap", icon: "Crosshair", order: 230, component: HeatmapTab });
+
+    // Its settings page: the cog on its row in Settings > Extensions opens it.
+    this.addSettingTab(new HeatmapSettings(this.app, this.ctrl));
 
     // The Library: a Heatmap button on each replay that has a match file. It opens the tab filtered to that one replay.
     this.addLibraryReplayAction({

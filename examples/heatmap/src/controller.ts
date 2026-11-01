@@ -8,7 +8,7 @@
 
 import type { Plugin } from "soup";
 import { loadMaps, loadWeapons } from "./mapdata";
-import { parseMatch, type MapInfo, type Mode, type ParsedMatch, type SideFilter } from "./logic";
+import { DEFAULT_PREFS, normalizePrefs, parseMatch, type MapInfo, type Mode, type ParsedMatch, type Prefs, type SideFilter } from "./logic";
 
 export type Source = "library" | "recent" | "both";
 
@@ -39,6 +39,8 @@ export interface Snapshot {
   mapError: string | null;
   /** The signed-in account's id, when the Riot Client knows it. */
   me: string | null;
+  /** The settings page's choices, saved for the active profile. */
+  prefs: Prefs;
 }
 
 interface LibReplay {
@@ -64,6 +66,7 @@ export class Controller {
     notes: [],
     mapError: null,
     me: null,
+    prefs: DEFAULT_PREFS,
   };
   private listeners = new Set<() => void>();
   private cache = new Map<string, ParsedMatch>();
@@ -92,6 +95,21 @@ export class Controller {
     // Recent matches are only fetched when they are wanted: asking for them later reads again.
     if (patch.source && patch.source !== before && patch.source !== "library" && before === "library") void this.reload();
   }
+
+  /** Read the settings saved for this profile; the tab starts from the source they name. */
+  async loadPrefs(): Promise<void> {
+    const saved = await this.plugin.loadData<{ prefs?: unknown }>();
+    const prefs = normalizePrefs(saved?.prefs);
+    this.set({ prefs, view: { ...this.snap.view, source: prefs.startSource } });
+  }
+
+  /** The settings page changed something: draw with it and save it for this profile. */
+  setPrefs(patch: Partial<Prefs>): void {
+    const prefs = normalizePrefs({ ...this.snap.prefs, ...patch });
+    this.set({ prefs });
+    this.saving = this.saving.then(() => this.plugin.saveData({ prefs })).catch((e) => this.plugin.app.log.warn(`could not save the settings: ${errText(e)}`));
+  }
+  private saving: Promise<void> = Promise.resolve();
 
   /** The Library's Heatmap button: that replay's map, only that replay, every player. */
   focusReplay(r: { id: string; mapUrl: string | null }): void {

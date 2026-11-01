@@ -4,7 +4,7 @@
 // alpha adds up where points overlap) and then stretched to the real size, which also blurs it. 50 matches are about a thousand
 // stamps: a few milliseconds. The dots are drawn at full resolution on top.
 
-import { hslToRgb, type Point } from "./logic";
+import { hexToRgb, hslToRgb, type Point, type Prefs } from "./logic";
 
 export interface Palette {
   kill: [number, number, number];
@@ -15,6 +15,12 @@ export interface Palette {
 export function paletteFromTheme(): Palette {
   const css = getComputedStyle(document.documentElement);
   return { kill: hslToRgb(css.getPropertyValue("--forest-300")), death: hslToRgb(css.getPropertyValue("--warning")) };
+}
+
+/** The theme's colours, with the ones chosen on the settings page in their place. */
+export function paletteFor(prefs: Prefs): Palette {
+  const theme = paletteFromTheme();
+  return { kill: prefs.killColor ? hexToRgb(prefs.killColor) : theme.kill, death: prefs.deathColor ? hexToRgb(prefs.deathColor) : theme.death };
 }
 
 const GLOW = 256;

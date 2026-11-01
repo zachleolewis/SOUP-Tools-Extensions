@@ -9,7 +9,7 @@ Files each new match into folders, renames it, backs it up and posts a summary t
 - **Automatic.** When SOUP saves a finished match (`match-capture/auto-saved`) the replay is filed by your rules: moved into a folder made from a template, renamed from another, copied to a backup folder, and announced on Discord. A failure in any step is a Notice, a warning in SOUP's log and a line in the tab; the other steps and the next match carry on.
 - **Organize existing replays...** in the Library's **Import** menu: a preview lists every replay and what would change (or why it would not), and **nothing moves until you press Apply**.
 - **Organizer tab.** The rules at a glance, a switch for automatic organizing, and the last 50 things it did, newest first. A filing has an **Undo**: it puts the replay back where it was with its old name, unless you changed it since. (The folders it made are left; they may hold other replays.)
-- **Settings > Auto Organizer.** The rules, saved for the active profile (a team profile keeps the team's rules), with a live example under each template.
+- **Settings page** (the cog on its row in Settings > Extensions). The rules in three groups (Filing, Backup, Discord), saved for the active profile (a team profile keeps the team's rules), with a live example under each template and a **Reset** beside it.
 
 ## The rules
 

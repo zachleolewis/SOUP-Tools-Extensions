@@ -1,5 +1,6 @@
-// Settings > Auto Organizer: the rules. `Setting` builds rows that look like the rest of SOUP's settings; every change is saved for the
-// active profile (a team profile keeps the team's rules).
+// Auto Organizer's settings page (the cog on its row in Settings > Extensions): the rules, in three groups under headings. `Setting`
+// builds rows that look like the rest of SOUP's settings; every change is saved for the active profile (a team profile keeps the
+// team's rules).
 
 import { Notice, Setting, SettingTab } from "soup";
 import { DEFAULT_RULES, factsOf, folderPath, newName, normalizeModes, unknownTokens, type Facts } from "./logic";
@@ -23,7 +24,10 @@ export class OrganizerSettings extends SettingTab {
     const { org, plugin } = this;
     const el = this.containerEl;
     const rules = () => org.get().rules;
+    // `redraw()` (a Reset button) calls display() again: drop the previous page's subscription first.
+    this.cleanup?.();
 
+    new Setting(el).setName("Filing").setHeading();
     new Setting(el)
       .setName("Organize new matches automatically")
       .setDesc("When SOUP saves a finished match, file it by these rules. The Library's Import menu has Organize existing replays... either way.")
@@ -32,11 +36,11 @@ export class OrganizerSettings extends SettingTab {
     const folders = new Setting(el).setName("Folder template").addText((t) => {
       t.setValue(rules().folderTemplate).setPlaceholder(DEFAULT_RULES.folderTemplate).onChange((v) => org.setRules({ folderTemplate: v }));
       t.inputEl.setAttribute("aria-label", "Folder template");
-    });
+    }).addExtraButton((b) => b.setIcon("Reset").setTooltip("Folder template: back to the default").onClick(() => (org.setRules({ folderTemplate: DEFAULT_RULES.folderTemplate }), this.redraw())));
     const names = new Setting(el).setName("Rename template").addText((t) => {
       t.setValue(rules().renameTemplate).setPlaceholder(DEFAULT_RULES.renameTemplate).onChange((v) => org.setRules({ renameTemplate: v }));
       t.inputEl.setAttribute("aria-label", "Rename template");
-    });
+    }).addExtraButton((b) => b.setIcon("Reset").setTooltip("Rename template: back to the default").onClick(() => (org.setRules({ renameTemplate: DEFAULT_RULES.renameTemplate }), this.redraw())));
     // The description under each field shows what the template makes of a sample match, and says when a token is not known.
     const describe = () => {
       const r = rules();
@@ -55,6 +59,7 @@ export class OrganizerSettings extends SettingTab {
         t.inputEl.setAttribute("aria-label", "Only these modes");
       });
 
+    new Setting(el).setName("Backup").setHeading();
     let backupInput: HTMLInputElement | HTMLTextAreaElement | null = null;
     new Setting(el)
       .setName("Backup folder")
@@ -73,6 +78,7 @@ export class OrganizerSettings extends SettingTab {
         }),
       );
 
+    new Setting(el).setName("Discord").setHeading();
     new Setting(el)
       .setName("Discord webhook")
       .setDesc("After each new match a short summary (map, score, top fragger, no links) is posted to this channel. Keep the address private: SOUP's log lists the addresses an extension requests.")

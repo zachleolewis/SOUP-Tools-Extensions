@@ -75,8 +75,13 @@ export class Plugin {
   addActivityBar(o: Placement & Mountable): Handle;
   addMatchesSidebarPanel(o: PanelOptions): Handle;
   addViewer3dPanel(o: PanelOptions): Handle;
-  /** A section in Settings, titled by the tab's `name` (default: the extension's name). */
+  /**
+   * This extension's settings page, titled by the tab's `name` (default: the extension's name). A cog on the extension's row in
+   * Settings > Extensions opens it. One per extension: a second call replaces the first.
+   */
   addSettingTab(tab: SettingTab): Handle;
+  /** Open this extension's settings page (for a "Settings" button in your own tab). */
+  openSettings(): void;
   addLibraryReplayAction(o: ReplayActionOptions): Handle;
   /** A chip next to the replay's name on its Library tile. Call the returned `refresh()` when what `render` answers has changed (a note was added). */
   addLibraryReplayBadge(o: ReplayBadgeOptions): Handle & { refresh(): void };
@@ -106,12 +111,24 @@ export class RequestError extends Error {
 /** One settings row: `new Setting(el).setName("x").setDesc("y").addToggle((t) => t.setValue(true).onChange(save))`. */
 export class Setting {
   readonly settingEl: HTMLElement;
+  readonly infoEl: HTMLElement;
   readonly nameEl: HTMLElement;
   readonly descEl: HTMLElement;
   readonly controlEl: HTMLElement;
   constructor(containerEl: HTMLElement);
-  setName(name: string): this;
-  setDesc(desc: string): this;
+  setName(name: string | DocumentFragment): this;
+  /** Text, or a fragment you built (a link, a line break). */
+  setDesc(desc: string | DocumentFragment): this;
+  /** Make this row a heading that starts a group (`new Setting(el).setName("Discord").setHeading()`). */
+  setHeading(): this;
+  /** Add a CSS class to the row (your styles.css can style it). */
+  setClass(cls: string): this;
+  /** Grey the row out and turn its controls off (or on again). */
+  setDisabled(d: boolean): this;
+  /** Hide the row (or show it again), for settings that only matter when another one is on. */
+  setVisible(v: boolean): this;
+  addColorPicker(cb: (c: ColorComponent) => void): this;
+  addExtraButton(cb: (c: ExtraButtonComponent) => void): this;
   addToggle(cb: (c: ToggleComponent) => void): this;
   addText(cb: (c: TextComponent) => void): this;
   addTextArea(cb: (c: TextComponent) => void): this;
@@ -124,15 +141,21 @@ export class Setting {
 ### SettingTab
 
 ```ts
-/** A section in Settings for one extension: fill `containerEl` in `display()`, clean up in `hide()`. */
+/**
+ * An extension's settings page, opened from the cog on its row in Settings > Extensions (or `plugin.openSettings()`).
+ * SOUP empties `containerEl` and calls `display()` each time the page opens, and `hide()` when it closes. Save with
+ * `plugin.saveData`: the settings then belong to the active profile, and each profile has its own.
+ */
 export class SettingTab {
   app: unknown;
   containerEl: HTMLElement;
-  /** The section title (default: the extension's name). */
+  /** The page title (default: the extension's name). */
   name?: string;
   constructor(app?: unknown);
   display(): void;
   hide(): void;
+  /** Empty the page and call `display()` again (after a change that shows or hides rows). */
+  redraw(): void;
 }
 ```
 
@@ -342,6 +365,19 @@ export interface ButtonComponent {
 }
 ```
 
+### ColorComponent
+
+```ts
+export interface ColorComponent {
+  readonly colorEl: HTMLInputElement;
+  /** `#rrggbb`. */
+  setValue(v: string): this;
+  getValue(): string;
+  onChange(cb: (v: string) => void): this;
+  setDisabled(d: boolean): this;
+}
+```
+
 ### CommandSpec
 
 ```ts
@@ -412,6 +448,19 @@ export interface ExtensionSummary {
   version: string;
   /** The other extension's own `api` property, if it exposes one. */
   api: unknown;
+}
+```
+
+### ExtraButtonComponent
+
+```ts
+/** A small square button beside the other controls: a symbol or a short word, and a tooltip. */
+export interface ExtraButtonComponent {
+  readonly extraSettingsEl: HTMLButtonElement;
+  setIcon(text: string): this;
+  setTooltip(t: string): this;
+  setDisabled(d: boolean): this;
+  onClick(cb: () => void): this;
 }
 ```
 

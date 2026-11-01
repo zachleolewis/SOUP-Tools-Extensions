@@ -120,7 +120,7 @@ export default class ScrimNotes extends Plugin {
   }
 }
 
-/** Settings > Scrim Notes. `Setting` builds the rows; they look like the rest of SOUP's settings. */
+/** Its settings page (the cog on its row in Settings > Extensions). `Setting` builds the rows; they look like the rest of SOUP's settings. */
 class NotesSettings extends SettingTab {
   constructor(
     app: unknown,
@@ -133,6 +133,7 @@ class NotesSettings extends SettingTab {
   display() {
     const { store, app } = this.plugin;
     const el = this.containerEl;
+    new Setting(el).setName("Notes").setHeading();
     new Setting(el)
       .setName("Default tag")
       .setDesc("The tag a new note starts with.")
@@ -144,6 +145,7 @@ class NotesSettings extends SettingTab {
       .setName("Show the Notes badge on replays")
       .setDesc("A small chip with the number of notes on a replay's tile in the Library.")
       .addToggle((t) => t.setValue(store.get().settings.showBadge).onChange((v) => store.setSettings({ showBadge: v })));
+    new Setting(el).setName("This profile's notes").setHeading();
     new Setting(el)
       .setName("Delete all notes in this profile")
       .setDesc("Other profiles keep theirs. This cannot be undone: export to Markdown first if you want a copy.")

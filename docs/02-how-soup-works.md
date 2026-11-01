@@ -64,7 +64,7 @@ An extension adds to SOUP at fixed places. Each is a method of `Plugin` that ret
 | `addActivityBar` | A strip under the navigation on every tab |
 | `addMatchesSidebarPanel` | A panel in the match history sidebar |
 | `addViewer3dPanel` | A panel in the 3D replay viewer |
-| `addSettingTab` | A section in Settings for your extension |
+| `addSettingTab` | Your extension's settings page, opened from the cog on its row in Settings > Extensions |
 | `addLibraryReplayAction`, `addLibraryReplayBadge` | A button and a chip on each replay tile |
 | `addLibraryFolderAction`, `addLibraryToolbarAction` | A button on folders and in the Library toolbar |
 | `addMatchRowAction` | A button on each match in the history |

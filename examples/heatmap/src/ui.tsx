@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { Plugin } from "soup";
 import type { Controller, Source } from "./controller";
-import { draw, paletteFromTheme } from "./draw";
+import { draw, paletteFor } from "./draw";
 import { mapChoices, mapCode, nearest, playerChoices, pointsFor, type Filter, type MapInfo, type Mode, type Point, type SideFilter } from "./logic";
 
 /** What `scrim-notes` offers (its documented `api`); copied here because there is no shared package. */
@@ -53,6 +53,7 @@ function MapView({ map, points, glow, dots, weapons, names }: { map: MapInfo; po
   const [theme, setTheme] = useState(0);
   const [imageFailed, setImageFailed] = useState(false);
   const [hover, setHover] = useState<{ p: Point; x: number; y: number } | null>(null);
+  const prefs = useSyncExternalStore(ctx.ctrl.subscribe, () => ctx.ctrl.get().prefs);
 
   useEffect(() => setImageFailed(false), [map.displayIcon]);
   // Follow the width of the box (a square), and the person's palette.
@@ -74,8 +75,8 @@ function MapView({ map, points, glow, dots, weapons, names }: { map: MapInfo; po
     if (!c || size === 0) return;
     const px = Math.round(size * (window.devicePixelRatio || 1));
     if (c.width !== px) c.width = c.height = px;
-    draw(c, points, { glow, dots, palette: paletteFromTheme() });
-  }, [points, glow, dots, size, theme]);
+    draw(c, points, { glow, dots, palette: paletteFor(prefs) });
+  }, [points, glow, dots, size, theme, prefs]);
 
   const onMove = (e: React.PointerEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -194,7 +195,7 @@ export function HeatmapTab({ active }: { active?: boolean }) {
           )}
           {mapInfo && (
           <p className="hm-legend">
-            <span className="hm-key hm-key-kill" /> kill, where the killer stood <span className="hm-key hm-key-death" /> death, where the player fell. Hover a dot for who, weapon and round.
+            <span className="hm-key hm-key-kill" style={snap.prefs.killColor ? { background: snap.prefs.killColor } : undefined} /> kill, where the killer stood <span className="hm-key hm-key-death" style={snap.prefs.deathColor ? { background: snap.prefs.deathColor } : undefined} /> death, where the player fell. Hover a dot for who, weapon and round.
           </p>
           )}
         </div>

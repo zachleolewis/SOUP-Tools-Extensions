@@ -243,3 +243,27 @@ export function hslToRgb(channels: string): [number, number, number] {
   };
   return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
 }
+
+// ---------------------------------------------------------------- the settings page
+
+/** What the settings page saves (`saveData`, so per profile). An empty colour means "the theme's". */
+export interface Prefs {
+  killColor: string;
+  deathColor: string;
+  startSource: "library" | "recent" | "both";
+}
+export const DEFAULT_PREFS: Prefs = { killColor: "", deathColor: "", startSource: "both" };
+
+/** Whatever `loadData` returned, as well-formed Prefs: a colour must be #rrggbb, anything unknown is the default. */
+export function normalizePrefs(raw: unknown): Prefs {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const colour = (v: unknown) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : "");
+  const src = r.startSource === "library" || r.startSource === "recent" || r.startSource === "both" ? r.startSource : DEFAULT_PREFS.startSource;
+  return { killColor: colour(r.killColor), deathColor: colour(r.deathColor), startSource: src };
+}
+
+/** "#ff4655" as [255, 70, 85]. */
+export function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}

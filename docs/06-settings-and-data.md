@@ -54,7 +54,34 @@ Other well-known folders: `app.paths.saveDir` (where the profile saves replays),
 
 ## Settings UI
 
-Show your settings with a [`SettingTab`](05-ui.md#settings), and save in each `onChange`.
+Show your settings with a [`SettingTab`](05-ui.md#settings) and save in each `onChange`. The cog on your row in Settings >
+Extensions opens the page, and it tells the person which profile the settings are saved for.
+
+## Profiles
+
+A SOUP profile is a set of settings and a Library: a person can have "Personal" and "Team SOUP". What your extension sees follows
+the active profile:
+
+| | Per profile | Same for every profile |
+|---|---|---|
+| On or off | Yes: turned on in one profile, it can be off in another | |
+| `loadData` / `saveData` | Yes | |
+| `app.paths.dataDir`, `saveDir`, `libraryRoot` | Yes | |
+| `app.paths.machineDir`, `tempDir`, `codeDir` | | Yes |
+| The installed code and its version | | Yes |
+
+Switching profile reloads SOUP's window: your `onunload` runs, and then `onload` runs again with the new profile's data. You
+do not have to listen for the switch to read the right settings; reading them in `onload` is enough. To know which profile is
+active, or to react just before the switch (save a draft), use `app.profiles`:
+
+```ts snippet
+const active = await app.profiles.active(); // { id, name, kind: "personal" | "team", ... }
+app.log.info(`settings for ${active?.name}`);
+plugin.registerEvent(app.profiles.onChange((p) => app.log.info(`switching to ${p.name}`)));
+```
+
+Something that should be the same in every profile (a downloaded data file, an account-wide cache) goes in `machineDir` as a file,
+not in `saveData`. [`scrim-notes`](../examples/scrim-notes) keeps a team profile's notes apart from the personal ones this way.
 
 ## What not to do
 

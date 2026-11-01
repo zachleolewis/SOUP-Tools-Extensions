@@ -10,6 +10,7 @@ Kill and death heatmaps on the real minimap, from the match files in your Librar
 - **Counts.** The line at the top says how many matches, kills and deaths are on the map; the Matches list on the right shows each match's dots, and **Only** narrows the map to one match.
 - **Library: Heatmap button.** On every replay that has a match file: opens the tab filtered to that replay.
 - **Works with Scrim Notes.** If [`scrim-notes`](../scrim-notes) is installed and on, a match that has notes gets a **Notes N** button that opens them there, and the count follows when a note is added (the `scrim-notes/changed` event). Without it, nothing changes. This is the example for [guide 13](../../docs/13-working-with-other-extensions.md): an `optionalDependencies` entry, `app.extensions.get("scrim-notes")` and its documented `api`.
+- **Settings page** (the cog on its row in Settings > Extensions). The colour of kills and of deaths (a colour picker, with **Reset** to go back to the theme's), which matches the tab starts with, and **Read again**. Saved for the active profile. [`src/settings.ts`](src/settings.ts) is the example of headings, `addColorPicker`, `addExtraButton` and `redraw()`.
 - **Smooth with 50 matches.** The glow is drawn once per change on a small canvas and stretched, the dots on top. SOUP's self-test loads 47 more matches and changes the filters eight times with no task longer than a quarter of a second.
 
 "You" is the account the Riot Client is signed in to; without the Riot Client you pick yourself by name in the player list.

@@ -1,7 +1,7 @@
 // The logic of the Heatmap that needs no SOUP: reading match files, projecting a kill onto the minimap, filtering. `npm run check:logic`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { hslToRgb, isFresh, mapChoices, nearest, parseMatch, playerChoices, pointsFor, project, type Filter, type MapInfo } from "../examples/heatmap/src/logic.ts";
+import { hexToRgb, hslToRgb, isFresh, normalizePrefs, mapChoices, nearest, parseMatch, playerChoices, pointsFor, project, type Filter, type MapInfo } from "../examples/heatmap/src/logic.ts";
 
 const MAP: MapInfo = { uuid: "u", displayName: "Icebox", mapUrl: "/Game/Maps/Port/Port", displayIcon: "x", xMultiplier: 0.000072, yMultiplier: -0.000072, xScalarToAdd: 0.460214, yScalarToAdd: 0.304687 };
 
@@ -123,4 +123,11 @@ test("theme channels become rgb", () => {
   assert.deepEqual(hslToRgb("0 100% 50%"), [255, 0, 0]);
   assert.deepEqual(hslToRgb("120 100% 50%"), [0, 255, 0]);
   assert.deepEqual(hslToRgb("nonsense"), [128, 128, 128]);
+});
+
+test("the settings page's choices: colours must be #rrggbb, an unknown start is the default, a colour is read back as numbers", () => {
+  assert.deepEqual(normalizePrefs(undefined), { killColor: "", deathColor: "", startSource: "both" });
+  assert.deepEqual(normalizePrefs({ killColor: "#FF4655", deathColor: "red", startSource: "library" }), { killColor: "#ff4655", deathColor: "", startSource: "library" });
+  assert.deepEqual(normalizePrefs({ killColor: 5, startSource: "everything" }), { killColor: "", deathColor: "", startSource: "both" });
+  assert.deepEqual(hexToRgb("#ff4655"), [255, 70, 85]);
 });
