@@ -26,6 +26,12 @@ export interface ScrimNotesApi {
   exportMarkdown(path: string, keys?: string[]): Promise<number>;
 }
 
+/** The payload of the `scrim-notes/changed` event: the match whose notes changed (null: all notes were deleted) and how many it has now. */
+export interface ScrimNotesChanged {
+  matchId: string | null;
+  count: number;
+}
+
 export default class ScrimNotes extends Plugin {
   store = new NotesStore(this);
   private badge?: { refresh(): void };
@@ -69,6 +75,8 @@ export default class ScrimNotes extends Plugin {
     });
     // The badge reads our data, so it asks the tiles to draw again whenever the data changes.
     this.registerEvent({ off: this.store.subscribe(() => this.badge?.refresh()) });
+    // And other extensions hear about it: an event named after this extension (`<id>/<name>`) that carries the match and its new count.
+    this.store.onChange = (key) => this.app.events.emit("scrim-notes/changed", { matchId: key, count: key ? this.store.count(key) : 0 } satisfies ScrimNotesChanged);
 
     // The Matches tab: an "Add note" button on every row of the match history.
     this.addMatchRowAction({

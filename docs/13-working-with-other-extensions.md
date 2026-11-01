@@ -9,31 +9,37 @@ Give your `Plugin` a property named `api` and document it. This is the whole off
 ```ts
 import { Plugin } from "soup";
 
-export interface RosterApi {
-  list(): string[];
-  add(name: string): Promise<void>;
+export interface NotesApi {
+  notesFor(matchId: string): string[];
+  add(matchId: string, text: string): Promise<void>;
 }
 
-export default class TeamRoster extends Plugin {
-  private names: string[] = [];
+/** The payload of the `scrim-notes/changed` event. */
+export interface NotesChanged {
+  matchId: string;
+  count: number;
+}
 
-  api: RosterApi = {
-    list: () => [...this.names],
-    add: async (name) => {
-      this.names.push(name);
-      await this.saveData({ names: this.names });
+export default class ScrimNotes extends Plugin {
+  private notes: Record<string, string[]> = {};
+
+  api: NotesApi = {
+    notesFor: (matchId) => [...(this.notes[matchId] ?? [])],
+    add: async (matchId, text) => {
+      (this.notes[matchId] ??= []).push(text);
+      await this.saveData({ notes: this.notes });
       // Tell listeners. The event name must start with this extension's id and a slash.
-      this.app.events.emit("team-roster/changed", this.api.list());
+      this.app.events.emit("scrim-notes/changed", { matchId, count: this.notes[matchId].length } satisfies NotesChanged);
     },
   };
 
   async onload() {
-    this.names = (await this.loadData<{ names?: string[] }>()).names ?? [];
+    this.notes = (await this.loadData<{ notes?: Record<string, string[]> }>()).notes ?? {};
   }
 }
 ```
 
-Treat `api` like any public API: add to it, do not change what exists in a way that breaks callers, and bump your version (`^1.0` ranges in other manifests will keep matching minor versions).
+Treat `api` like any public API: add to it, do not change what exists in a way that breaks callers, and bump your version (`^1.0` ranges in other manifests will keep matching minor versions). The real [`scrim-notes`](../examples/scrim-notes/src/main.tsx) does this with notes that have rounds and tags.
 
 ## The consumer
 
@@ -41,34 +47,36 @@ Treat `api` like any public API: add to it, do not change what exists in a way t
 import { Plugin } from "soup";
 
 // The provider's documented interface, copied into this project.
-interface RosterApi {
-  list(): string[];
+interface NotesApi {
+  notesFor(matchId: string): string[];
 }
 
-export default class RosterConsumer extends Plugin {
+export default class Heatmap extends Plugin {
   async onload() {
-    const roster = (this.app.extensions.get("team-roster") as unknown as { api: RosterApi } | undefined)?.api;
-    if (!roster) throw new Error("team-roster is not loaded");
-    this.app.log.info(`${roster.list().length} on the roster`);
-    this.registerEvent(this.app.events.on("team-roster/changed", (names: string[]) => this.app.log.info(names.join(", "))));
+    const notes = (this.app.extensions.get("scrim-notes") as unknown as { api: NotesApi } | undefined)?.api;
+    if (!notes) {
+      this.app.log.info("scrim-notes is not installed: no links to notes"); // an optional dependency: carry on without it
+      return;
+    }
+    this.app.log.info(`${notes.notesFor("some-match-id").length} notes on that match`);
+    this.registerEvent(this.app.events.on("scrim-notes/changed", (e: { matchId: string; count: number }) => this.app.log.info(`${e.matchId} has ${e.count} notes`)));
   }
 }
 ```
 
-(Copy the provider's interface into your own project, as above, or publish it as a small types file next to the provider's releases. There is no shared package.)
-
+(Copy the provider's interface into your own project, as above, or publish it as a small types file next to the provider's releases. There is no shared package.) A consumer that cannot work without the provider throws instead of returning, and lists it under `dependencies` (next section).
 ## Declare the dependency
 
 In the consumer's manifest:
 
 ```json
 {
-  "dependencies": { "team-roster": "^1.0" },
+  "dependencies": { "scrim-notes": "^1.0" },
   "optionalDependencies": { "other-thing": "^2.0" }
 }
 ```
 
-- `dependencies`: the provider must be installed, on, and in that version range. SOUP loads it **first** and waits for its `onload` to finish, and does not load your extension without it (the row says "needs team-roster" or why). If the provider is turned off, your extension is unloaded and shown as blocked, with the reason on its row.
+- `dependencies`: the provider must be installed, on, and in that version range. SOUP loads it **first** and waits for its `onload` to finish, and does not load your extension without it (the row says "needs scrim-notes" or why). If the provider is turned off, your extension is unloaded and shown as blocked, with the reason on its row.
 - `optionalDependencies`: if the extension is there it loads first, and `app.extensions.get` finds it; if not, yours loads anyway. Always check for `undefined`.
 - Two extensions that depend on each other, directly or through others, are a cycle: both are marked Error.
 - When the provider is updated or reloaded, extensions that depend on it are reloaded too, so the instance you hold is always the live one.

@@ -98,6 +98,11 @@ export class Controller {
     this.setView({ replayId: r.id, mapUrl: r.mapUrl, who: "all", source: "library" });
   }
 
+  /** Draw the tab again without reading anything (what it shows from another extension, the note counts, changed). */
+  touch(): void {
+    this.set({});
+  }
+
   /** Read again if it has been a while (the tab was opened). */
   refreshIfStale(): void {
     if (Date.now() - this.lastRun > 60_000) void this.reload();

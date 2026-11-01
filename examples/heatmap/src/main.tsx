@@ -38,6 +38,9 @@ export default class Heatmap extends Plugin {
       },
     });
 
+    // Scrim Notes tells us when a match's notes change, so the Notes buttons in the list are always current. (If it is not installed the event never comes.)
+    this.registerEvent(this.app.events.on("scrim-notes/changed", () => this.ctrl.touch()));
+
     this.addCommand({ id: "refresh", name: "Heatmap: read matches again", callback: () => void this.ctrl.reload() });
 
     // The Library changes in bursts (an import adds several replays): read once, a moment after the last change.

@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Modal, Notice, type Plugin } from "soup";
-import { TAGS, formatDate, formatDateTime, lastEdit, mapName, noteMatches, searchMatches, tagLabel, toMarkdown, type MatchNotes, type Note, type Tag } from "./model";
+import { TAGS, formatDate, formatDateTime, lastEdit, mapName, noteMatches, searchMatches, tagLabel, type MatchNotes, type Note, type Tag } from "./model";
 import type { MatchMeta, NotesStore } from "./store";
 
 export interface Ctx {
@@ -419,4 +419,3 @@ export function NotesTab({ active }: { active?: boolean }) {
   );
 }
 
-export { toMarkdown };

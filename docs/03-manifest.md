@@ -4,17 +4,17 @@
 
 ```json
 {
-  "id": "scrim-notes",
-  "name": "Scrim Notes",
+  "id": "heatmap",
+  "name": "Heatmap",
   "version": "1.2.0",
   "minAppVersion": "2.3.0",
   "apiVersion": "^1.0",
-  "description": "Notes on every scrim.",
+  "description": "Kill heatmaps on the real minimap.",
   "author": "Your name",
   "authorUrl": "https://example.com",
   "fundingUrl": "https://example.com/sponsor",
-  "repo": "your-github-name/scrim-notes",
-  "dependencies": { "team-roster": "^1.0" },
+  "repo": "your-github-name/heatmap",
+  "dependencies": { "scrim-notes": "^1.0" },
   "optionalDependencies": {},
   "requiresModules": ["library"],
   "uses": ["filesystem"]
@@ -52,7 +52,7 @@ For example:
 ```
 id: "My Extension" must be 1 to 40 lowercase letters, digits and dashes (no leading or trailing dash)
 apiVersion: "latest" is not a version range like ^1.0
-dependencies.team-roster: not a version range (use for example "^1.0")
+dependencies.scrim-notes: not a version range (use for example "^1.0")
 ```
 
 SOUP refuses to install it, and nothing is left behind.

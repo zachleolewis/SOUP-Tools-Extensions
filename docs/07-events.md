@@ -57,10 +57,10 @@ An extension can announce things to other extensions. The event name must start 
 
 ```ts snippet
 // In the provider:
-app.events.emit("team-roster/changed", ["Ada", "Grace"]);
+app.events.emit("scrim-notes/changed", { matchId: "3f2a9c1e", count: 2 });
 
 // In a consumer:
-const ref = app.events.on("team-roster/changed", (names: string[]) => app.log.debug(names.join(", ")));
+const ref = app.events.on("scrim-notes/changed", (e: { matchId: string; count: number }) => app.log.debug(`${e.matchId}: ${e.count} notes`));
 plugin.registerEvent(ref);
 ```
 

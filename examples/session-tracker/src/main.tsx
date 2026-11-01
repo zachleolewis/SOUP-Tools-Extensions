@@ -13,7 +13,7 @@
 import { Plugin, debounce } from "soup";
 import { riotSource, type DataSource } from "./source";
 import { SessionStore } from "./store";
-import { HeaderChip, SessionTab, TAB, headline, setCtx } from "./ui";
+import { HeaderChip, SessionTab, headline, setCtx } from "./ui";
 import "./styles.css";
 
 export default class SessionTracker extends Plugin {

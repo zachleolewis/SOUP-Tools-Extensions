@@ -19,6 +19,8 @@ export class NotesStore {
   private saving: Promise<void> = Promise.resolve();
   /** The match the Notes tab should show when it opens (set by the dialog's "Open in the Notes tab" and by other extensions). */
   focusKey: string | null = null;
+  /** Called with the key of the match whose notes changed, or null when all notes were deleted (the extension tells other extensions with it). */
+  onChange: ((key: string | null) => void) | null = null;
 
   constructor(private plugin: Plugin) {}
 
@@ -46,6 +48,7 @@ export class NotesStore {
     const existing = this.data.notes[key];
     const next: MatchNotes = existing ? { ...existing, entries: [...existing.entries, note] } : { ...meta, entries: [note] };
     this.commit({ ...this.data, notes: { ...this.data.notes, [key]: next } });
+    this.onChange?.(key);
     return note;
   }
 
@@ -64,6 +67,7 @@ export class NotesStore {
           },
     );
     this.commit({ ...this.data, notes: { ...this.data.notes, [key]: { ...m, entries } } });
+    this.onChange?.(key);
   }
 
   remove(key: string, id: string): void {
@@ -74,10 +78,12 @@ export class NotesStore {
     if (entries.length === 0) delete notes[key];
     else notes[key] = { ...m, entries };
     this.commit({ ...this.data, notes });
+    this.onChange?.(key);
   }
 
   removeAll(): void {
     this.commit({ ...this.data, notes: {} });
+    this.onChange?.(null);
   }
 
   setSettings(patch: Partial<Settings>): void {
