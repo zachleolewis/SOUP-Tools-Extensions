@@ -1,0 +1,12 @@
+{
+  "id": "heatmap",
+  "name": "Heatmap",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "Kill and death heatmaps on the real minimap, from the match files in your Library and your recent matches.",
+  "author": "SOUP",
+  "uses": ["network", "filesystem"],
+  "requiresModules": ["library"],
+  "optionalDependencies": { "scrim-notes": "^1.0" }
+}

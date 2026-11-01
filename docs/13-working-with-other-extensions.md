@@ -83,7 +83,7 @@ In the consumer's manifest:
 
 ## A walkthrough
 
-[`scrim-notes`](../examples/scrim-notes/src/main.tsx) is a provider: its `api` offers `notesFor(matchId)`, `open(matchId)` and `exportMarkdown(path)`, and it is declared in the class as `api: ScrimNotesApi`. Build it (`npm run build:example -- examples/scrim-notes`), install `dist/scrim-notes` ("From a folder"), turn it on, and add a note from the Library. A second extension reads it the way the consumer above does: `app.extensions.get("scrim-notes")`, then `.api.notesFor(matchId)`, and lists the notes next to whatever it shows for that match.
+[`scrim-notes`](../examples/scrim-notes/src/main.tsx) is the provider: its `api` is declared in the class as `api: ScrimNotesApi` and offers `notesFor(matchId)`, `open(matchId)` and `exportMarkdown(path)`. [`heatmap`](../examples/heatmap/src/ui.tsx) is the consumer, and an optional one: its manifest says `"optionalDependencies": { "scrim-notes": "^1.0" }`, so SOUP loads Scrim Notes first when it is installed and on, and `notesApi()` there is `app.extensions.get("scrim-notes")?.api` with a copy of the interface it needs. Build both (`npm run build:examples`), install `dist/scrim-notes` and `dist/heatmap` ("From a folder"), turn them on, add a note to a replay from the Library, and open the Heatmap tab: that match has a **Notes 1** button that opens the note. Turn Scrim Notes off in Settings: Heatmap reloads without the button and keeps working, which is what "optional" means.
 
 ## Limits
 

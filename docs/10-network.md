@@ -67,6 +67,8 @@ try {
 - Cache. Check `res.headers["etag"]` or save the time of the last fetch in `saveData`.
 - Handle being offline: a network error is a normal thing, not a crash.
 
+[`examples/heatmap/src/mapdata.ts`](../examples/heatmap/src/mapdata.ts) is all four in one file: it fetches valorant-api.com with `requestUrl`, keeps the answer in a JSON file in the extension's data folder for a week, uses an older copy when the network is down, and only reports an error when it has nothing at all.
+
 ## WebSockets and other protocols
 
 `requestUrl` is HTTP(S) only. For anything else (a WebSocket, a raw socket), use the browser's `WebSocket` for `wss://` servers that allow it, or run a [helper program](11-files-and-processes.md#helper-programs) that does the networking and talks to your extension over standard input and output.

@@ -1,0 +1,43 @@
+/* Heatmap. Drawn from SOUP's theme variables, so it follows the person's palette. Square corners, 3px black borders, hard shadows. */
+
+.hm-panel { display: flex; flex-direction: column; border: 3px solid #000; background: hsl(var(--forest-900)); box-shadow: 5px 5px 0 0 #000; color: hsl(var(--foreground)); }
+.hm-toolbar { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 3px solid #000; background: hsl(var(--forest-700)); }
+.hm-title { font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+.hm-count { border: 2px solid #000; background: hsl(var(--forest-900)); box-shadow: 2px 2px 0 0 #000; padding: 1px 10px; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; }
+.hm-grow { flex: 1; min-width: 0; }
+.hm-dim { margin: 0; font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+
+.hm-controls { display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 2px solid #000; background: hsl(var(--forest-700) / 0.6); }
+.hm-field { display: flex; flex-direction: column; gap: 3px; font-family: "Space Mono", monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: hsl(var(--foreground) / 0.7); }
+.hm-select { font-size: 0.8rem; text-transform: none; }
+.hm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.hm-chip { border: 2px solid #000; background: hsl(var(--forest-900)); color: inherit; padding: 5px 11px; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0 0 #000; }
+.hm-chip:hover { background: hsl(var(--forest-500)); }
+.hm-chip[aria-pressed="true"] { background: hsl(var(--forest-300)); color: #000; }
+.hm-filterbar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 2px solid #000; background: hsl(var(--forest-500) / 0.5); font-size: 0.85rem; }
+
+.hm-split { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; padding: 20px; align-items: start; }
+@media (max-width: 900px) { .hm-split { grid-template-columns: 1fr; } }
+.hm-stage { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.hm-map { position: relative; width: min(100%, 680px, calc(100vh - 290px)); min-width: 280px; aspect-ratio: 1 / 1; border: 3px solid #000; background: hsl(var(--forest-900)); box-shadow: 4px 4px 0 0 #000; overflow: hidden; touch-action: none; }
+.hm-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; display: block; user-select: none; }
+.hm-art-missing { display: grid; place-items: center; padding: 16px; text-align: center; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+.hm-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hm-ring { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 3px solid hsl(var(--foreground)); border-radius: 50%; pointer-events: none; }
+.hm-tip { position: absolute; z-index: 2; display: flex; flex-direction: column; gap: 1px; max-width: 220px; padding: 6px 9px; border: 2px solid #000; background: hsl(var(--forest-900)); box-shadow: 3px 3px 0 0 #000; font-size: 0.75rem; pointer-events: none; }
+.hm-tip strong { font-family: "Space Grotesk", sans-serif; }
+.hm-none { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 8px 14px; border: 2px solid #000; background: hsl(var(--forest-900)); box-shadow: 3px 3px 0 0 #000; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; }
+.hm-legend { margin: 0; font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+.hm-key { display: inline-block; width: 10px; height: 10px; border: 2px solid #000; vertical-align: -1px; margin: 0 4px 0 8px; }
+.hm-key-kill { background: hsl(var(--forest-300)); border-radius: 50%; }
+.hm-key-death { background: hsl(var(--warning)); transform: rotate(45deg); }
+.hm-loading { align-self: stretch; padding: 16px; font-family: "Space Mono", monospace; font-size: 0.8rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+.hm-error { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px; border: 3px solid #000; background: hsl(var(--forest-700)); box-shadow: 4px 4px 0 0 #000; font-size: 0.85rem; font-weight: 600; align-self: stretch; }
+
+.hm-side { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.hm-sidetitle { margin: 0; font-family: "Space Grotesk", sans-serif; font-size: 1rem; font-weight: 700; }
+.hm-matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; max-height: 560px; overflow: auto; }
+.hm-match { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 2px solid #000; background: hsl(var(--forest-700)); box-shadow: 2px 2px 0 0 #000; }
+.hm-matchname { margin: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-notes { list-style: none; margin: 0; padding: 8px 10px; border: 2px solid #000; background: hsl(var(--forest-700)); font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--warning)); display: flex; flex-direction: column; gap: 4px; }
