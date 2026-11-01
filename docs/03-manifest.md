@@ -14,6 +14,7 @@
   "authorUrl": "https://example.com",
   "fundingUrl": "https://example.com/sponsor",
   "repo": "your-github-name/heatmap",
+  "links": [{ "label": "Documentation", "url": "https://example.com/heatmap/docs" }, { "label": "Support", "url": "https://example.com/heatmap/support" }],
   "dependencies": { "scrim-notes": "^1.0" },
   "optionalDependencies": {},
   "requiresModules": ["library"],
@@ -34,6 +35,7 @@
 | `author` | yes | Shown in the install dialog and on the row |
 | `authorUrl`, `fundingUrl` | no | `https://` links |
 | `repo` | no | `owner/name` on GitHub. With it SOUP can look for updates ([publishing](15-publishing.md)) |
+| `links` | no | Up to 6 links shown on the extension's Info page and in the install dialog, for your documentation, support or community: `[{ "label": "Documentation", "url": "https://..." }]`. A label is 1 to 40 characters and the `url` must be `https://`. A bad entry is reported like any other manifest problem. `authorUrl`, `repo` and `fundingUrl` ("Support the author") are shown there too |
 | `dependencies` | no | Other extensions that must be on, with a version range. They load first; yours does not load without them |
 | `optionalDependencies` | no | Other extensions to load first *if* they are installed and on |
 | `requiresModules` | no | Built-in modules that must be on, for example `["library"]`. If one is off the extension is blocked, with the reason on its row |

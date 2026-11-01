@@ -11,7 +11,7 @@ A release of `your-name/your-extension` must carry:
 | `manifest.json` | Required |
 | `main.js` | Required |
 | `styles.css` | Only if you have styles |
-| `extension.zip` | Optional: `manifest.json`, `main.js`, `styles.css` and any other files (images, a helper program, `panel.html`) in one zip. **If it is there, SOUP uses it and ignores the loose files**; if you ship extra files you must use it |
+| `extension.zip` | Optional: `manifest.json`, `main.js`, `styles.css` and any other files (images, a helper program, `panel.html`) in one zip. **If it is there, SOUP uses it and ignores the loose files**; if you ship extra files you must use it. Put `README.md` (and `CHANGELOG.md`) in the zip: SOUP shows them on the extension's Info page (Settings > Extensions, the (i) button) and, for the README, in the install dialog. Loose-file releases have neither |
 
 and a **tag that equals the manifest's `version`** (`v1.2.0` or `1.2.0` for version `1.2.0`). SOUP refuses a release whose tag and manifest disagree.
 
@@ -50,7 +50,7 @@ SOUP keeps the previous version. **Roll back** on the row puts it back. Settings
 
 ## Changelog
 
-SOUP does not show a changelog of its own. Put what changed in the GitHub release notes and your README.
+SOUP does not write a changelog of its own. Put what changed in the GitHub release notes and your README; a `CHANGELOG.md` inside `extension.zip` is shown on the extension's Info page.
 
 ## Getting known
 

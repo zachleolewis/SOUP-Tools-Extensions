@@ -33,8 +33,10 @@ export async function buildExample(dir) {
   const css = readdirSync(tmp).find((f) => f.endsWith(".css"));
   if (css) cpSync(path.join(tmp, css), path.join(out, "styles.css"));
   cpSync(path.join(src, "manifest.json"), path.join(out, "manifest.json"));
-  // SOUP shows README.md in the install dialog ("what am I about to install?"), so it travels with the extension.
-  if (existsSync(path.join(src, "README.md"))) cpSync(path.join(src, "README.md"), path.join(out, "README.md"));
+  // SOUP shows README.md in the install dialog ("what am I about to install?") and both files on the Info page, so they travel with the extension.
+  for (const doc of ["README.md", "CHANGELOG.md"]) {
+    if (existsSync(path.join(src, doc))) cpSync(path.join(src, doc), path.join(out, doc));
+  }
   rmSync(tmp, { recursive: true, force: true });
   return out;
 }

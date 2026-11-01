@@ -6,6 +6,7 @@
   "apiVersion": "^1.0",
   "description": "Files new matches into folders, renames them, backs them up and posts a summary to Discord, by rules you set. Everything has an Undo.",
   "author": "SOUP",
+  "links": [{ "label": "Documentation", "url": "https://github.com/zachleolewis/SOUP-Tools-Extensions/tree/main/examples/auto-organizer#readme" }],
   "uses": ["filesystem", "network"],
   "requiresModules": ["library", "match-capture"]
 }

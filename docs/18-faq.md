@@ -14,7 +14,7 @@
 
 **Is there a store or a list of extensions?** No. People find extensions on GitHub and in the community. A community list may come later.
 
-**Can I sell an extension, or ask for donations?** Yes. `fundingUrl` in the manifest is shown on the extension's page. SOUP takes no part in payments.
+**Can I sell an extension, or ask for donations?** Yes. `fundingUrl` in the manifest is shown on the extension's Info page and in the install dialog. SOUP takes no part in payments.
 
 **Can an extension add a new window or overlay?** A separate window, yes ([guide 12](12-windows.md)). It cannot draw inside VALORANT.
 

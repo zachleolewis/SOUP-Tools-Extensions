@@ -6,6 +6,7 @@
   "apiVersion": "^1.0",
   "description": "Kill and death heatmaps on the real minimap, from the match files in your Library and your recent matches.",
   "author": "SOUP",
+  "links": [{ "label": "Documentation", "url": "https://github.com/zachleolewis/SOUP-Tools-Extensions/tree/main/examples/heatmap#readme" }],
   "uses": ["network", "filesystem"],
   "requiresModules": ["library"],
   "optionalDependencies": { "scrim-notes": "^1.0" }

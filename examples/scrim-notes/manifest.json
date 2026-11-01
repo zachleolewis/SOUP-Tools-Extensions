@@ -6,6 +6,7 @@
   "apiVersion": "^1.0",
   "description": "Write notes on any match: per round, tagged, searchable, kept per profile and exported to Markdown.",
   "author": "SOUP",
+  "links": [{ "label": "Documentation", "url": "https://github.com/zachleolewis/SOUP-Tools-Extensions/tree/main/examples/scrim-notes#readme" }],
   "uses": ["filesystem"],
   "requiresModules": ["library"]
 }
