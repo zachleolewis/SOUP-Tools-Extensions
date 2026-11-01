@@ -11,7 +11,10 @@ import { Plugin, Notice /* ... */ } from "soup";
 ### Modal
 
 ```ts
-/** A dialog: fill `contentEl` in `onOpen`, call `close()` to end it. */
+/**
+ * A dialog: fill `contentEl` in `onOpen`, call `close()` to end it. Pass `this.app` to the constructor and SOUP closes it when
+ * the extension unloads. Escape closes the top-most dialog only; an error in `onOpen` / `onClose` is logged.
+ */
 export class Modal {
   app: unknown;
   titleEl: HTMLElement;
@@ -28,9 +31,9 @@ export class Modal {
 ### Notice
 
 ```ts
-/** A toast. */
+/** A toast. `tone` is "success" when left out. */
 export class Notice {
-  constructor(message: string, durationMs?: number);
+  constructor(message: string, durationMs?: number, tone?: "info" | "success" | "error");
 }
 ```
 
@@ -64,6 +67,8 @@ export class Plugin {
   /** `this.registerEvent(this.app.events.on(...))`: the subscription ends when the extension unloads. */
   registerEvent(ref: { off: () => void }): void;
   registerInterval(id: number): number;
+  /** Cancel a `debounce`d function when the extension unloads. */
+  registerDebounce(d: { cancel(): void }): void;
   registerDomEvent<K extends keyof WindowEventMap>(target: Window, type: K, fn: (e: WindowEventMap[K]) => void, opts?: AddEventListenerOptions): void;
   registerDomEvent<K extends keyof DocumentEventMap>(target: Document, type: K, fn: (e: DocumentEventMap[K]) => void, opts?: AddEventListenerOptions): void;
   registerDomEvent(target: HTMLElement, type: string, fn: (e: Event) => void, opts?: AddEventListenerOptions): void;
@@ -164,8 +169,11 @@ export class SettingTab {
 ### debounce
 
 ```ts
-/** Run `fn` once calls stop for `ms` (default 250). */
-export function debounce<A extends unknown[]>(fn: (...a: A) => void, ms?: number): (...a: A) => void;
+/**
+ * Run `fn` once calls stop for `ms` (default 250). It keeps running after the extension unloads unless you cancel it:
+ * pass it to `this.registerDebounce(...)`, and call `flush()` in `onunload` when the pending call must still happen (a save).
+ */
+export function debounce<A extends unknown[]>(fn: (...a: A) => void, ms?: number): Debounced<A>;
 ```
 
 ### normalizePath
@@ -388,6 +396,19 @@ export interface CommandSpec {
   /** `Ctrl+Shift+N`, `Alt+F2`. A shortcut needs Ctrl or Alt; Ctrl+K belongs to the command palette. */
   hotkey?: string;
   callback: () => void | Promise<void>;
+}
+```
+
+### Debounced
+
+```ts
+/** A function that waits for calls to stop before running (see `debounce`). */
+export interface Debounced<A extends unknown[]> {
+  (...a: A): void;
+  /** Drop the pending call. */
+  cancel(): void;
+  /** Run the pending call now (nothing happens if none is pending). */
+  flush(): void;
 }
 ```
 

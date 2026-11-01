@@ -33,7 +33,9 @@ export function isDiscordWebhook(url: string): boolean {
     return false;
   }
   const known = ["discord.com", "ptb.discord.com", "canary.discord.com", "discordapp.com"].includes(u.hostname.toLowerCase());
-  return u.protocol === "https:" && known && !u.username && !u.password && /^\/api(\/v\d+)?\/webhooks\/\d+\/[\w-]+\/?$/.test(u.pathname);
+  // A webhook server on this PC (a local Discord stand-in, SOUP's self-test) is allowed over plain http: nothing leaves the PC.
+  const local = u.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(u.hostname.toLowerCase());
+  return ((u.protocol === "https:" && known) || local) && !u.username && !u.password && /^\/api(\/v\d+)?\/webhooks\/\d+\/[\w-]+\/?$/.test(u.pathname);
 }
 
 /**

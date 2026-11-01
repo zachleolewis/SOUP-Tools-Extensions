@@ -103,6 +103,8 @@ test("only a Discord webhook address is accepted (https, discord.com or discorda
   assert.equal(isDiscordWebhook("  https://discordapp.com/api/webhooks/123456/abc  "), true);
   assert.equal(isDiscordWebhook("https://ptb.discord.com/api/v10/webhooks/123456/abc"), true);
   assert.equal(isDiscordWebhook("http://discord.com/api/webhooks/123456/abc"), false, "plain http is refused");
+  assert.equal(isDiscordWebhook("http://127.0.0.1:5000/api/webhooks/123/secret-token"), true, "a server on this PC is allowed");
+  assert.equal(isDiscordWebhook("http://example.com/api/webhooks/123/x"), false, "plain http elsewhere is refused");
   assert.equal(isDiscordWebhook("https://evil.example/api/webhooks/123456/abc"), false);
   assert.equal(isDiscordWebhook("https://discord.com.evil.example/api/webhooks/123456/abc"), false);
   assert.equal(isDiscordWebhook("https://discord.com@evil.example/api/webhooks/123456/abc"), false);
