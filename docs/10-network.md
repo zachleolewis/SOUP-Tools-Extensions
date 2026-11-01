@@ -55,7 +55,7 @@ try {
 }
 ```
 
-- A response larger than 256 MB is an error.
+- A response larger than 256 MB is an error. For big files use [`app.net.upload` and `app.net.download`](19-accounts-and-sync.md), which stream and have no such cap.
 - Redirects are followed (up to 10).
 - There are no cookies: each request stands alone.
 - The query string is never written to SOUP's log. The line for a request says `[ext-<id>] requests GET https://host/path`.

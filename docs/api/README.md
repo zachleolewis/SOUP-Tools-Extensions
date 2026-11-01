@@ -218,6 +218,18 @@ export interface App {
     list(): Promise<unknown>;
     root(): Promise<string>;
     onChanged(cb: (c: unknown) => void): EventRef;
+    /**
+     * Add replay (.vrf) and match (.json) files to the Library, paired the way Library > Import pairs them (a .vrf with its
+     * .json, attached to the card of the same match when there is one), into the folder `folderId` (the root when left out).
+     * `skipped` lists files that could not be read.
+     */
+    importFiles(paths: string[], folderId?: string | null): Promise<{ imported: number; skipped: Array<{ path: string; error: string }> }>;
+    createFolder(name: string, parentId?: string | null, color?: string | null): Promise<LibraryFolder>;
+    renameReplay(replayId: string, name: string): Promise<void>;
+    /** Move a replay or a folder into a folder (`null`: the root). */
+    moveItem(kind: "replay" | "folder", id: string, folderId: string | null): Promise<void>;
+    /** To the Library's trash (the files go to `.trash`; nothing is erased). */
+    deleteReplay(replayId: string): Promise<void>;
   };
   matches: {
     history(): Promise<unknown>;
@@ -291,11 +303,43 @@ export interface App {
   /** Any URL from SOUP's side of the app: no CORS, any method. */
   requestUrl(opts: RequestUrlOptions | string): Promise<RequestUrlResponse>;
 
+  /** Sign in to a service the way a desktop app should. Declare `"accounts"` in your manifest's `uses`. */
+  auth: {
+    /**
+     * Open the system browser on `authorizeUrl`, wait for the redirect on a one-shot listener on 127.0.0.1, check `state`, and
+     * exchange the code (PKCE, S256) at `tokenUrl`. `extra` holds every other query parameter of the redirect (Google Picker's
+     * `picked_file_ids`). Rejects with `auth_denied`, `auth_timeout`, `auth_cancelled` or `auth_failed`. No token is logged.
+     */
+    oauthPkce(o: OAuthOptions): Promise<OAuthTokens>;
+    /** Renew an access token. The answer usually has no `refreshToken`: keep the one you have. */
+    refresh(o: RefreshOptions): Promise<OAuthTokens>;
+  };
+  /** Small secrets (a refresh token, up to 8 KB each) in Windows Credential Manager, private to this extension; deleted with its data. Keys are 1 to 128 letters, digits, `.`, `-` and `_`. */
+  secrets: {
+    get(key: string): Promise<string | null>;
+    set(key: string, value: string): Promise<void>;
+    /** True when there was a secret to delete. */
+    delete(key: string): Promise<boolean>;
+  };
+  /** Files to and from a server, streamed by SOUP (nothing is held whole in memory, no size cap of `requestUrl`). */
+  net: {
+    /** Send a file or a slice of it. The status is a value, not an error (a resumable upload answers 308 until it is complete). */
+    upload(o: UploadOptions): Promise<UploadResponse>;
+    /** Write the answer to a file. A status that is not 2xx writes nothing and gives `errorText`. */
+    download(o: DownloadOptions): Promise<DownloadResponse>;
+  };
+
   profiles: {
     active(): Promise<ProfileInfo | undefined>;
     list(): Promise<ProfileInfo[]>;
     /** Fires before the window reloads for the new profile. */
     onChange(cb: (p: ProfileInfo) => void): EventRef;
+    /** Write the ACTIVE profile (settings, theme, which extensions it uses; this PC's paths left out) as a `.soupprofile` file. Returns the path written. */
+    exportTo(path: string): Promise<string>;
+    /** What importing the file would do. Nothing is created. */
+    previewImport(path: string): Promise<ImportPreview>;
+    /** Make a NEW profile from the file: nothing is overwritten and no extension is installed. `choices.name` overrides the file's name. */
+    importFrom(path: string, choices?: { name?: string }): Promise<ProfileInfo>;
   };
 
   /** Other extensions. */
@@ -422,6 +466,23 @@ export interface DialogInput {
 }
 ```
 
+### DownloadOptions
+
+```ts
+export interface DownloadOptions {
+  url: string;
+  /** Default GET. */
+  method?: string;
+  headers?: Record<string, string>;
+  /** Where to write. A relative path starts in `dataDir`; parent folders are created. */
+  to: string;
+  /** Refuse an answer larger than this many bytes (default 4 GiB, at most 100 GiB). */
+  maxBytes?: number;
+  timeoutMs?: number;
+  onProgress?: (p: TransferProgress) => void;
+}
+```
+
 ### DropdownComponent
 
 ```ts
@@ -538,6 +599,27 @@ export interface Mountable {
 }
 ```
 
+### OAuthOptions
+
+```ts
+export interface OAuthOptions {
+  /** The service's authorization address (https only). */
+  authorizeUrl: string;
+  /** The service's token address (https only). */
+  tokenUrl: string;
+  clientId: string;
+  /** A desktop client's "secret" (public by design for most services; PKCE is the protection). */
+  clientSecret?: string;
+  scopes: string[];
+  /** More query parameters for the authorization address (`access_type`, `prompt`, `trigger_onepick`, ...). `state`, `scope`, `redirect_uri`, `client_id`, `response_type` and the `code_challenge` ones are set by SOUP and cannot be given. */
+  extraParams?: Record<string, string>;
+  /** How long to wait for the person to finish in the browser (default and longest: 5 minutes). */
+  timeoutMs?: number;
+  /** Abort a sign-in that is still waiting for the browser (the call then rejects with `auth_cancelled`). */
+  signal?: AbortSignal;
+}
+```
+
 ### PanelOptions
 
 ```ts
@@ -574,6 +656,18 @@ export interface ProcessHandle {
   kill(): Promise<boolean>;
   /** Resolves with the exit code after the last output line was delivered. */
   wait(): Promise<number | null>;
+}
+```
+
+### RefreshOptions
+
+```ts
+export interface RefreshOptions {
+  tokenUrl: string;
+  clientId: string;
+  clientSecret?: string;
+  refreshToken: string;
+  scopes?: string[];
 }
 ```
 
@@ -722,6 +816,26 @@ export interface ToolbarActionOptions extends Placement {
 }
 ```
 
+### UploadOptions
+
+```ts
+export interface UploadOptions {
+  url: string;
+  /** Default PUT. */
+  method?: string;
+  headers?: Record<string, string>;
+  /** The file to send. A relative path starts in `dataDir`. */
+  file: string;
+  /** Where in the file to start (default 0). */
+  offset?: number;
+  /** How many bytes to send (default: to the end of the file). */
+  length?: number;
+  /** The whole request may take this long (default 30 minutes, at most 6 hours). */
+  timeoutMs?: number;
+  onProgress?: (p: TransferProgress) => void;
+}
+```
+
 ## Data types
 
 ### ClientEvent
@@ -752,6 +866,24 @@ puuid: string | null,
 autoDetected: boolean, };
 ```
 
+### DownloadResponse
+
+```ts
+export type DownloadResponse = { status: number, headers: { [key in string]?: string }, 
+/**
+ * Bytes written (0 when the status is not 2xx: nothing is written then).
+ */
+size: number, 
+/**
+ * The file written, or null when the status is not 2xx.
+ */
+path: string | null, 
+/**
+ * The start of the answer's text when the status is not 2xx (up to 16 KB), to see why.
+ */
+errorText: string | null, };
+```
+
 ### FsEntry
 
 ```ts
@@ -775,6 +907,37 @@ export type FsStat = { exists: boolean, isDir: boolean, isFile: boolean, size: n
  * The signed-in account, from what the connection watcher already knows.
  */
 export type Identity = { name: string, tag: string | null, puuid: string, region: string, shard: string, };
+```
+
+### ImportExtension
+
+```ts
+export type ImportExtension = { id: string, version: string | null, repo: string | null, installed: boolean, };
+```
+
+### ImportPreview
+
+```ts
+/**
+ * What the import dialog shows before anything is created.
+ */
+export type ImportPreview = { name: string, kind: ProfileKind, color: string, soupVersion: string, 
+/**
+ * Built-in modules the profile turns on / off (by id; `None` entries use the module's default and are not listed).
+ */
+modulesOn: Array<string>, modulesOff: Array<string>, 
+/**
+ * Extensions it needs, and whether each is installed here. They are never installed automatically.
+ */
+extensions: Array<ImportExtension>, 
+/**
+ * Module ids in the file that this SOUP does not know (kept as they are).
+ */
+unknownModules: Array<string>, 
+/**
+ * Settings that will not be imported because they name a folder of the PC it came from.
+ */
+dropped: Array<string>, customThemes: number, hasLogo: boolean, };
 ```
 
 ### LibraryAgent
@@ -862,6 +1025,24 @@ startedAt: number | null,
 lastPlayedAt: number | null, pinned: boolean, sortIndex: number, };
 ```
 
+### OAuthTokens
+
+```ts
+export type OAuthTokens = { accessToken: string, 
+/**
+ * A refresh token comes only on the first sign-in with most services; keep the old one when a refresh gives none.
+ */
+refreshToken: string | null, 
+/**
+ * Epoch milliseconds when the access token stops working.
+ */
+expiresAt: number, scope: string, idToken: string | null, 
+/**
+ * Every other query parameter of the redirect (for example Google Picker's `picked_file_ids`).
+ */
+extra: { [key in string]?: string }, };
+```
+
 ### ProfileInfo
 
 ```ts
@@ -910,6 +1091,26 @@ name: string,
  * Switch to this profile when that account signs in, without asking.
  */
 autoSwitch: boolean, };
+```
+
+### TransferProgress
+
+```ts
+export type TransferProgress = { done: number, 
+/**
+ * The size when it is known.
+ */
+total: number | null, };
+```
+
+### UploadResponse
+
+```ts
+export type UploadResponse = { status: number, 
+/**
+ * Lower-case names; repeated headers joined with ", ".
+ */
+headers: { [key in string]?: string }, text: string, };
 ```
 
 ### WatchEvent

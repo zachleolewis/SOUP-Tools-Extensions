@@ -39,7 +39,7 @@
 | `dependencies` | no | Other extensions that must be on, with a version range. They load first; yours does not load without them |
 | `optionalDependencies` | no | Other extensions to load first *if* they are installed and on |
 | `requiresModules` | no | Built-in modules that must be on, for example `["library"]`. If one is off the extension is blocked, with the reason on its row |
-| `uses` | no | Tags saying what you use: `riot`, `network`, `filesystem`, `processes`, `windows`, `clipboard`. They are shown to the person installing it. They are a statement, not a permission: SOUP does not enforce them. An extension that says `riot` gets an extra warning line in the install dialog |
+| `uses` | no | Tags saying what you use: `riot`, `network`, `filesystem`, `processes`, `windows`, `clipboard`, `accounts` (sign-in and stored secrets, see [guide 19](19-accounts-and-sync.md)). They are shown to the person installing it. They are a statement, not a permission: SOUP does not enforce them. An extension that says `riot` gets an extra warning line in the install dialog |
 
 Unknown fields are kept and ignored, so you can add your own.
 
