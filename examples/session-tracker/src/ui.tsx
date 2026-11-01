@@ -39,7 +39,7 @@ export function HeaderChip() {
 }
 
 function ResultCell({ m }: { m: SessionMatch }) {
-  const label = m.result === "win" ? "Win" : m.result === "loss" ? "Loss" : m.result === "draw" ? "Draw" : "?";
+  const label = m.result === "win" ? "Win" : m.result === "loss" ? "Loss" : m.result === "draw" ? "Draw" : "-";
   return <span className={`st-result st-${m.result}`}>{label}</span>;
 }
 

@@ -8,7 +8,7 @@ Files each new match into folders, renames it, backs it up and posts a summary t
 
 - **Automatic.** When SOUP saves a finished match (`match-capture/auto-saved`) the replay is filed by your rules: moved into a folder made from a template, renamed from another, copied to a backup folder, and announced on Discord. A failure in any step is a Notice, a warning in SOUP's log and a line in the tab; the other steps and the next match carry on.
 - **Organize existing replays...** in the Library's **Import** menu: a preview lists every replay and what would change (or why it would not), and **nothing moves until you press Apply**.
-- **Organizer tab.** The rules at a glance, a switch for automatic organizing, and the last 50 things it did, newest first. A filing has an **Undo**: it puts the replay back where it was with its old name, unless you changed it since. (The folders it made are left; they may hold other replays.)
+- **Organizer tab.** The rules at a glance, a switch for automatic organizing, and the last 50 things it did, newest first. A filing has an **Undo**: it puts the replay back where it was with its old name, unless you changed it since. If an undo stops half way, press Undo again: it finishes the part that is left. (The folders it made are left; they may hold other replays.)
 - **Settings page** (the cog on its row in Settings > Extensions). The rules in three groups (Filing, Backup, Discord), saved for the active profile (a team profile keeps the team's rules), with a live example under each template and a **Reset** beside it.
 
 ## The rules
@@ -19,7 +19,7 @@ Files each new match into folders, renames it, backs it up and posts a summary t
 | Rename template | `{date} {map} {score} {result}`, ... Two matches never get the same name in a folder (`(2)` is added). Empty: names are left as they are. |
 | Only these modes | `custom, competitive, premier`. Empty: every mode. A replay of another mode is left alone (the log says so). |
 | Backup folder | Pick it with **Choose...**. The replay and the match file are copied there after filing, never overwritten. |
-| Discord webhook | A webhook address. After each new match one embed is posted: map, score, result, top fragger, no links. **Send a test message** tries it. |
+| Discord webhook | A Discord webhook address (`https://discord.com/api/webhooks/...`; other addresses are refused, and the page says so). After each new match one embed is posted: map, score, result, top fragger, no links. **Send a test message** tries it. |
 
 Tokens: `{mode}` `{map}` `{date}` (`2026-10-27`) `{date:YYYY-MM}` (any of `YYYY MM DD HH mm`) `{time}` `{score}` (`13-8`) `{result}` (Win, Loss or Draw for the signed-in account; empty when nobody is signed in) `{id}` (the first 8 characters of the match id). A token that is not known stays as written, and the settings say so.
 

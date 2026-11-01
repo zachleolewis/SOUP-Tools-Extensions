@@ -24,6 +24,29 @@ export interface Rules {
 
 export const DEFAULT_RULES: Rules = { enabled: true, folderTemplate: "{mode}/{map}", renameTemplate: "{date} {map} {score}", modes: [], backupDir: "", webhookUrl: "" };
 
+/** A Discord webhook address: https, discord.com or discordapp.com, `/api/webhooks/<id>/<token>`. Anything else would send the match summary somewhere else. */
+export function isDiscordWebhook(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url.trim());
+  } catch {
+    return false;
+  }
+  const known = ["discord.com", "ptb.discord.com", "canary.discord.com", "discordapp.com"].includes(u.hostname.toLowerCase());
+  return u.protocol === "https:" && known && !u.username && !u.password && /^\/api(\/v\d+)?\/webhooks\/\d+\/[\w-]+\/?$/.test(u.pathname);
+}
+
+/**
+ * What is left to do to put a replay back (`from`) after it was organized (`to`). The name and the folder are judged one by one, so an
+ * undo that stopped half way (renamed, not moved) can be run again: a part that is already back is skipped. A string says why it must not run.
+ */
+export function undoSteps(now: { folderId: string | null; name: string }, u: { from: { folderId: string | null; name: string }; to: { folderId: string | null; name: string } }): { rename: boolean; move: boolean } | string {
+  const nameOk = now.name === u.to.name || now.name === u.from.name;
+  const folderOk = now.folderId === u.to.folderId || now.folderId === u.from.folderId;
+  if (!nameOk || !folderOk) return "it was changed after it was organized, so it is left as it is";
+  return { rename: now.name !== u.from.name, move: now.folderId !== u.from.folderId };
+}
+
 /** What a template can use, from a Library card (and the match file when `result` is wanted). */
 export interface Facts {
   mode: string;

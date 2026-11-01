@@ -41,6 +41,7 @@ export default class AutoOrganizer extends Plugin {
     };
     status();
     this.registerEvent({ off: this.org.subscribe(status) });
+    this.register(() => this.org.dispose()); // queued moves and the wait for the Library to catch up stop here
     this.register(() => void this.org.flush()); // whatever was typed last is saved when the extension is turned off
     this.app.log.info("auto-organizer loaded");
   }

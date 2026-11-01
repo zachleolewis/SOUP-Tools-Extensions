@@ -60,6 +60,16 @@ export const sessionStart = (now: number, resetAt: number | null): { at: number;
   return resetAt !== null && resetAt > today ? { at: resetAt, kind: "reset" } : { at: today, kind: "today" };
 };
 
+// ---------------------------------------------------------------- when to read
+
+/** Why a read happens. */
+export type Reason = "start" | "poll" | "event" | "manual";
+
+const RANK: Record<Reason, number> = { poll: 0, start: 1, event: 2, manual: 3 };
+
+/** The reason a queued read keeps when another arrives while one is running: a person's Refresh outranks an event, an event outranks a poll. */
+export const strongest = (queued: Reason | null, reason: Reason): Reason => (queued === null || RANK[reason] > RANK[queued] ? reason : queued);
+
 // ---------------------------------------------------------------- one match
 
 const MAP_NAMES: Record<string, string> = { Ascent: "Ascent", Bonsai: "Split", Canyon: "Fracture", Duality: "Bind", Foxtrot: "Breeze", Jam: "Lotus", Juliett: "Sunset", Pitt: "Pearl", Port: "Icebox", Triad: "Haven", Infinity: "Abyss", Rook: "Corrode" };
@@ -80,7 +90,8 @@ export function buildMatch(details: Json, puuid: string, summary: { matchId: str
   let result: Result = "unknown";
   let score = "";
   if (mine && other) {
-    result = mine.won === true ? "win" : other.won === true ? "loss" : "draw";
+    // A draw is both sides saying they did not win; a file without the `won` fields says nothing, so the result stays unknown.
+    result = mine.won === true ? "win" : other.won === true ? "loss" : mine.won === false && other.won === false ? "draw" : "unknown";
     const a = num(mine.roundsWon);
     const b = num(other.roundsWon);
     if (a !== null && b !== null) score = `${a}-${b}`;

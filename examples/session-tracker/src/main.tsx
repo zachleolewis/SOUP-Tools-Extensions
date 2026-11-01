@@ -10,7 +10,7 @@
 // ("[ext-session-tracker] Riot remote call: GET pd /mmr/..."); open the debug console with Ctrl+Shift+D > Extensions to see them.
 // It is polite: it reads when something happened, polls at most every two minutes, and never while a match is being played.
 
-import { Plugin, debounce } from "soup";
+import { Plugin } from "soup";
 import { riotSource, type DataSource } from "./source";
 import { SessionStore } from "./store";
 import { HeaderChip, SessionTab, headline, setCtx } from "./ui";
@@ -33,7 +33,13 @@ export default class SessionTracker extends Plugin {
     this.addTab({ id: "session", label: "Session", icon: "Trophy", order: 210, component: SessionTab });
 
     // What makes the numbers change: a match saved, the Riot Client connecting or another account signing in.
-    const soon = debounce(() => void this.store.refresh("event"), 3000); // the match details need a moment to be ready
+    // (Our own timer rather than `debounce`: it is cancelled when the extension is turned off, so nothing is read after that.)
+    let timer: number | undefined;
+    const soon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void this.store.refresh("event"), 3000); // the match details need a moment to be ready
+    };
+    this.register(() => window.clearTimeout(timer));
     this.registerEvent(this.app.events.on("match-capture/auto-saved", soon));
     this.registerEvent(this.app.riot.onConnectionChanged(soon));
     // Otherwise a read every two minutes (it skips itself while a match is being played).

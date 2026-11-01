@@ -4,7 +4,7 @@
 // is what makes a view draw again. (The first version of this example kept a counter in a static `textContent` and never
 // re-rendered. This is the part that fixes it.)
 
-import type { Plugin } from "soup";
+import { Notice, type Plugin } from "soup";
 import { emptyData, newId, normalize, type MatchNotes, type Note, type NotesData, type Settings, type Tag } from "./model";
 
 export interface MatchMeta {
@@ -17,6 +17,9 @@ export class NotesStore {
   private data: NotesData = emptyData();
   private listeners = new Set<() => void>();
   private saving: Promise<void> = Promise.resolve();
+  /** Why the last save failed (null: it worked). The tab shows it; the first failure of a run of failures is also a Notice. */
+  private saveError: string | null = null;
+  private statusListeners = new Set<() => void>();
   /** The match the Notes tab should show when it opens (set by the dialog's "Open in the Notes tab" and by other extensions). */
   focusKey: string | null = null;
   /** Called with the key of the match whose notes changed, or null when all notes were deleted (the extension tells other extensions with it). */
@@ -35,6 +38,13 @@ export class NotesStore {
   };
 
   get = (): NotesData => this.data;
+
+  /** For `useSyncExternalStore`: the reason the notes could not be saved, or null. */
+  subscribeStatus = (cb: () => void): (() => void) => {
+    this.statusListeners.add(cb);
+    return () => void this.statusListeners.delete(cb);
+  };
+  getSaveError = (): string | null => this.saveError;
 
   count(key: string): number {
     return this.data.notes[key]?.entries.length ?? 0;
@@ -105,7 +115,20 @@ export class NotesStore {
     const snapshot = next;
     this.saving = this.saving
       .then(() => this.plugin.saveData(snapshot))
-      .catch((e) => this.plugin.app.log.warn(`could not save the notes: ${e instanceof Error ? e.message : String(e)}`));
+      .then(() => this.setSaveError(null))
+      .catch((e) => {
+        const why = e instanceof Error ? e.message : String(e);
+        this.plugin.app.log.warn(`could not save the notes: ${why}`);
+        // saveData refuses more than 1 MB of JSON (`too_large`), and then the notes are only in memory: say so once, not on every keystroke.
+        if (this.saveError === null) new Notice(`Scrim Notes could not save your notes (${why}). They are lost when SOUP closes: export them to Markdown, or delete some.`, 10000, "error");
+        this.setSaveError(why);
+      });
+  }
+
+  private setSaveError(why: string | null): void {
+    if (this.saveError === why) return;
+    this.saveError = why;
+    for (const l of [...this.statusListeners]) l();
   }
 
   /** Resolves when everything changed so far is on disk. */

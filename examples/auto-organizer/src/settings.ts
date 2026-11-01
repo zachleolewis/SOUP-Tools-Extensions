@@ -3,7 +3,7 @@
 // team's rules).
 
 import { Notice, Setting, SettingTab } from "soup";
-import { DEFAULT_RULES, factsOf, folderPath, newName, normalizeModes, unknownTokens, type Facts } from "./logic";
+import { DEFAULT_RULES, factsOf, folderPath, isDiscordWebhook, newName, normalizeModes, unknownTokens, type Facts } from "./logic";
 import type { Organizer } from "./organizer";
 import type { Plugin } from "soup";
 
@@ -79,17 +79,25 @@ export class OrganizerSettings extends SettingTab {
       );
 
     new Setting(el).setName("Discord").setHeading();
-    new Setting(el)
-      .setName("Discord webhook")
-      .setDesc("After each new match a short summary (map, score, top fragger, no links) is posted to this channel. Keep the address private: SOUP's log lists the addresses an extension requests.")
+    const webhook = new Setting(el).setName("Discord webhook");
+    const describeWebhook = () => {
+      const url = rules().webhookUrl.trim();
+      webhook.setDesc(
+        "After each new match a short summary (map, score, top fragger, no links) is posted to this channel. Keep the address private: SOUP's log lists the addresses an extension requests." +
+          (url !== "" && !isDiscordWebhook(url) ? " This is not a Discord webhook address: it must start with https://discord.com/api/webhooks/ (or discordapp.com), so nothing is posted." : ""),
+      );
+    };
+    describeWebhook();
+    webhook
       .addText((t) => {
-        t.setValue(rules().webhookUrl).setPlaceholder("https://discord.com/api/webhooks/...").onChange((v) => org.setRules({ webhookUrl: v }));
+        t.setValue(rules().webhookUrl).setPlaceholder("https://discord.com/api/webhooks/...").onChange((v) => (org.setRules({ webhookUrl: v }), describeWebhook()));
         t.inputEl.setAttribute("aria-label", "Discord webhook");
       })
       .addButton((b) =>
         b.setButtonText("Send a test message").onClick(async () => {
           await org.flush();
           if (!rules().webhookUrl.trim()) return void new Notice("Auto Organizer: paste a webhook address first");
+          if (!isDiscordWebhook(rules().webhookUrl)) return void new Notice("Auto Organizer: that is not a Discord webhook address (https://discord.com/api/webhooks/...)", 8000, "error");
           await org.sendTest();
         }),
       );

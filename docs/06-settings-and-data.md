@@ -27,6 +27,7 @@ export default class Saved extends Plugin {
 - The data is any JSON object, at most 1 MB. It is stored in the profile's `config.json` under your extension's id, so it is exported with the profile (`.soupprofile`) and a duplicated profile starts with a copy.
 - Each profile has its own. A person who plays with two teams gets two sets of settings.
 - It is saved when you call `saveData`. Call it after each change, not on a timer.
+- `saveData` rejects when it cannot save (for example `too_large` over the 1 MB cap). Catch it and tell the person (`new Notice(..., 8000, "error")`); otherwise the data is lost on restart without a word.
 - Save only what you need: a settings object, not a cache of everything you ever fetched.
 - If you add fields in a new version, merge with defaults as above (`{ ...defaults, ...saved }`); old saved data will not have them.
 

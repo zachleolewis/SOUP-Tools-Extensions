@@ -1,7 +1,7 @@
 // What Auto Organizer decides: templates, folder paths, names that do not clash, which modes, and the Discord facts. `npm run check:logic`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DEFAULT_RULES, cleanName, compactScore, fill, findFolder, folderPath, modeAllowed, newName, normalizeModes, pathOf, planFor, resultFor, topFragger, unknownTokens, type Facts, type FolderLite, type ReplayLite } from "../examples/auto-organizer/src/logic.ts";
+import { DEFAULT_RULES, cleanName, compactScore, fill, findFolder, folderPath, isDiscordWebhook, modeAllowed, newName, normalizeModes, pathOf, planFor, resultFor, topFragger, undoSteps, unknownTokens, type Facts, type FolderLite, type ReplayLite } from "../examples/auto-organizer/src/logic.ts";
 
 const at = new Date(2026, 9, 27, 18, 5).getTime(); // local time, as the tokens are
 const facts: Facts = { mode: "Competitive", map: "Icebox", startedAt: at, score: "13-8", result: "Win", matchId: "3f2a9c1e-5b7d-4e86-9a10-0c4d2b6e8f13" };
@@ -96,4 +96,26 @@ test("an empty template leaves that part alone", () => {
   assert.deepEqual([keepFolder.move, keepFolder.to.folderPath], [false, ["Competitive", "Icebox"]]);
   const keepName = planFor(r, { ...DEFAULT_RULES, renameTemplate: "" }, folders, [r], "");
   assert.deepEqual([keepName.rename, keepName.to.name], [false, "Replay a"]);
+});
+
+test("only a Discord webhook address is accepted (https, discord.com or discordapp.com)", () => {
+  assert.equal(isDiscordWebhook("https://discord.com/api/webhooks/123456/abc-DEF_9"), true);
+  assert.equal(isDiscordWebhook("  https://discordapp.com/api/webhooks/123456/abc  "), true);
+  assert.equal(isDiscordWebhook("https://ptb.discord.com/api/v10/webhooks/123456/abc"), true);
+  assert.equal(isDiscordWebhook("http://discord.com/api/webhooks/123456/abc"), false, "plain http is refused");
+  assert.equal(isDiscordWebhook("https://evil.example/api/webhooks/123456/abc"), false);
+  assert.equal(isDiscordWebhook("https://discord.com.evil.example/api/webhooks/123456/abc"), false);
+  assert.equal(isDiscordWebhook("https://discord.com@evil.example/api/webhooks/123456/abc"), false);
+  assert.equal(isDiscordWebhook("https://discord.com/channels/123/456"), false);
+  assert.equal(isDiscordWebhook("not a url"), false);
+});
+
+test("undo can be run again after it stopped half way", () => {
+  const u = { from: { folderId: null, name: "Old" }, to: { folderId: "f2", name: "New" } };
+  assert.deepEqual(undoSteps({ folderId: "f2", name: "New" }, u), { rename: true, move: true });
+  assert.deepEqual(undoSteps({ folderId: "f2", name: "Old" }, u), { rename: false, move: true }, "renamed, the move failed: only the move is left");
+  assert.deepEqual(undoSteps({ folderId: null, name: "New" }, u), { rename: true, move: false });
+  assert.deepEqual(undoSteps({ folderId: null, name: "Old" }, u), { rename: false, move: false }, "already back");
+  assert.equal(typeof undoSteps({ folderId: "f9", name: "New" }, u), "string", "someone moved it since");
+  assert.equal(typeof undoSteps({ folderId: "f2", name: "Mine" }, u), "string", "someone renamed it since");
 });

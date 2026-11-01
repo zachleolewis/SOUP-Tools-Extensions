@@ -12,7 +12,7 @@
 // It works with Scrim Notes when that is installed (`optionalDependencies` in the manifest): a match that has notes gets a Notes button
 // that opens them. That is the example for docs/13-working-with-other-extensions.md.
 
-import { Plugin, debounce } from "soup";
+import { Plugin } from "soup";
 import { Controller } from "./controller";
 import { HeatmapSettings } from "./settings";
 import { HeatmapTab, setCtx } from "./ui";
@@ -51,7 +51,9 @@ export default class Heatmap extends Plugin {
     this.addCommand({ id: "refresh", name: "Heatmap: read matches again", callback: () => void this.ctrl.reload() });
 
     // The Library changes in bursts (an import adds several replays): read once, a moment after the last change.
-    this.registerEvent(this.app.library.onChanged(debounce(() => void this.ctrl.reload(), 800)));
+    // (Our own timer, cancelled when the extension is turned off: a debounced call must not fire into an unloaded extension.)
+    this.registerEvent(this.app.library.onChanged(() => this.ctrl.reloadSoon()));
+    this.register(() => this.ctrl.dispose());
 
     // The row in Settings > Extensions says what the tab is showing.
     this.registerEvent({

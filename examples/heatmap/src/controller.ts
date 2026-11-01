@@ -8,7 +8,7 @@
 
 import type { Plugin } from "soup";
 import { loadMaps, loadWeapons } from "./mapdata";
-import { DEFAULT_PREFS, normalizePrefs, parseMatch, type MapInfo, type Mode, type ParsedMatch, type Prefs, type SideFilter } from "./logic";
+import { DEFAULT_PREFS, needsRead, normalizePrefs, parseMatch, type MapInfo, type Mode, type ParsedMatch, type Prefs, type SideFilter } from "./logic";
 
 export type Source = "library" | "recent" | "both";
 
@@ -74,6 +74,10 @@ export class Controller {
   private running: Promise<void> | null = null;
   private again = false;
   private lastRun = 0;
+  /** What the last finished read fetched, so a change of source reads again only when it needs something that is not there yet. */
+  private loaded = { library: false, recent: false };
+  private disposed = false;
+  private reloadTimer: number | undefined;
 
   constructor(private plugin: Plugin) {}
 
@@ -90,10 +94,21 @@ export class Controller {
   }
 
   setView(patch: Partial<View>): void {
-    const before = this.snap.view.source;
     this.set({ view: { ...this.snap.view, ...patch } });
-    // Recent matches are only fetched when they are wanted: asking for them later reads again.
-    if (patch.source && patch.source !== before && patch.source !== "library" && before === "library") void this.reload();
+    // Each source is only fetched when it is wanted: asking for one that was not read yet reads again.
+    if (patch.source && needsRead(patch.source, this.loaded)) void this.reload();
+  }
+
+  /** The Library changes in bursts (an import adds several replays): read once, a moment after the last change. Cancelled by `dispose`. */
+  reloadSoon(ms = 800): void {
+    window.clearTimeout(this.reloadTimer);
+    this.reloadTimer = window.setTimeout(() => void this.reload(), ms);
+  }
+
+  /** The extension is being turned off: no timer fires and no read starts any more. */
+  dispose(): void {
+    this.disposed = true;
+    window.clearTimeout(this.reloadTimer);
   }
 
   /** Read the settings saved for this profile; the tab starts from the source they name. */
@@ -104,9 +119,15 @@ export class Controller {
   }
 
   /** The settings page changed something: draw with it and save it for this profile. */
-  setPrefs(patch: Partial<Prefs>): void {
+  setPrefs(patch: Partial<Prefs>, persist = true): void {
     const prefs = normalizePrefs({ ...this.snap.prefs, ...patch });
     this.set({ prefs });
+    if (persist) this.savePrefs();
+  }
+
+  /** Save the current settings for this profile (a colour being dragged is drawn with `setPrefs(patch, false)` and saved once, when it is let go). */
+  savePrefs(): void {
+    const prefs = this.snap.prefs;
     this.saving = this.saving.then(() => this.plugin.saveData({ prefs })).catch((e) => this.plugin.app.log.warn(`could not save the settings: ${errText(e)}`));
   }
   private saving: Promise<void> = Promise.resolve();
@@ -128,6 +149,7 @@ export class Controller {
 
   /** Read the Library and the recent matches again. Calls made while a read is running are folded into one more pass. */
   reload(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
     if (this.running) {
       this.again = true;
       return this.running;
@@ -135,6 +157,7 @@ export class Controller {
     this.running = (async () => {
       do {
         this.again = false;
+        if (this.disposed) break;
         try {
           await this.pass();
         } catch (e) {
@@ -178,9 +201,11 @@ export class Controller {
     const wantRecent = this.snap.view.source !== "library";
 
     let recent: Array<{ matchId: string }> = [];
+    let recentRead = false;
     if (wantRecent) {
       try {
         recent = ((await app.matches.history()) as Array<{ matchId: string }>).slice(0, RECENT_LIMIT);
+        recentRead = true;
       } catch {
         notes.push("Recent matches need the Riot Client, and it is not running. Showing what is in your Library.");
       }
@@ -242,6 +267,7 @@ export class Controller {
     await side;
     done = total;
     publish();
+    this.loaded = { library: wantLibrary, recent: recentRead };
     this.set({ loading: false, notes });
   }
 }

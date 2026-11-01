@@ -1,7 +1,7 @@
 // The arithmetic of Session Tracker: the session window, win/loss from a match file, rating sums, the header text. `npm run check:logic`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildMatch, chipText, parseTiers, parseUpdates, sessionStart, signed, startOfDay, tierLabel, totals, type SessionMatch } from "../examples/session-tracker/src/logic.ts";
+import { buildMatch, chipText, parseTiers, parseUpdates, sessionStart, signed, strongest, startOfDay, tierLabel, totals, type SessionMatch } from "../examples/session-tracker/src/logic.ts";
 
 const ME = "me-puuid";
 const details = (over: { blueWon?: boolean; redWon?: boolean; blue?: number; red?: number; myTeam?: string } = {}) => ({
@@ -25,11 +25,25 @@ test("a win, from the point of view of the signed-in account (whichever team it 
   assert.deepEqual([l.result, l.score], ["loss", "8-13"]);
 });
 
+test("a queued read keeps its strongest reason, so a Refresh press is not lost", () => {
+  assert.equal(strongest(null, "poll"), "poll");
+  assert.equal(strongest("manual", "event"), "manual");
+  assert.equal(strongest("manual", "poll"), "manual");
+  assert.equal(strongest("event", "manual"), "manual");
+  assert.equal(strongest("poll", "event"), "event");
+});
+
 test("a draw has no winner; a file without you is unknown, never a guess", () => {
   assert.equal(buildMatch(details({ blueWon: false, redWon: false, blue: 12, red: 12 }), ME, summary).result, "draw");
   const unknown = buildMatch(details(), "someone-else", summary);
   assert.deepEqual([unknown.result, unknown.score, unknown.kills], ["unknown", "", null]);
   assert.equal(buildMatch({}, ME, summary).result, "unknown");
+  // A match file without `won` fields is not a draw: it is not counted as a win, a loss or a draw.
+  const noWon = details();
+  for (const team of noWon.teams as Array<Record<string, unknown>>) delete team.won;
+  const unknownResult = buildMatch(noWon, ME, summary);
+  assert.deepEqual([unknownResult.result, unknownResult.score], ["unknown", "13-8"]);
+  assert.deepEqual(totals([unknownResult]), { games: 1, wins: 0, losses: 0, draws: 0, rr: 0, hasRr: false });
 });
 
 test("the rating change is joined from the competitive update", () => {

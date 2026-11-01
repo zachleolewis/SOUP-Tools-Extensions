@@ -35,9 +35,9 @@ declare module "soup" {
 
   // ---------------------------------------------------------------- the UI classes
 
-  /** A toast. */
+  /** A toast. `tone` colours it: "error" for something that failed. */
   export class Notice {
-    constructor(message: string, durationMs?: number);
+    constructor(message: string, durationMs?: number, tone?: "info" | "success" | "error");
   }
 
   /** A dialog: fill `contentEl` in `onOpen`, call `close()` to end it. */

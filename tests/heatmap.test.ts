@@ -1,7 +1,7 @@
 // The logic of the Heatmap that needs no SOUP: reading match files, projecting a kill onto the minimap, filtering. `npm run check:logic`.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { hexToRgb, hslToRgb, isFresh, normalizePrefs, mapChoices, nearest, parseMatch, playerChoices, pointsFor, project, type Filter, type MapInfo } from "../examples/heatmap/src/logic.ts";
+import { hexToRgb, hslToRgb, isFresh, needsRead, normalizePrefs, mapChoices, nearest, parseMatch, playerChoices, pointsFor, project, type Filter, type MapInfo } from "../examples/heatmap/src/logic.ts";
 
 const MAP: MapInfo = { uuid: "u", displayName: "Icebox", mapUrl: "/Game/Maps/Port/Port", displayIcon: "x", xMultiplier: 0.000072, yMultiplier: -0.000072, xScalarToAdd: 0.460214, yScalarToAdd: 0.304687 };
 
@@ -130,4 +130,17 @@ test("the settings page's choices: colours must be #rrggbb, an unknown start is 
   assert.deepEqual(normalizePrefs({ killColor: "#FF4655", deathColor: "red", startSource: "library" }), { killColor: "#ff4655", deathColor: "", startSource: "library" });
   assert.deepEqual(normalizePrefs({ killColor: 5, startSource: "everything" }), { killColor: "", deathColor: "", startSource: "both" });
   assert.deepEqual(hexToRgb("#ff4655"), [255, 70, 85]);
+});
+
+test("a source is read again only when it needs matches the last read did not fetch", () => {
+  const none = { library: false, recent: false };
+  assert.equal(needsRead("recent", { library: true, recent: false }), true, "started on Library only, then Recent");
+  assert.equal(needsRead("library", { library: false, recent: true }), true, "started on Recent only, then Library (it was never read)");
+  assert.equal(needsRead("both", { library: false, recent: true }), true);
+  assert.equal(needsRead("both", { library: true, recent: false }), true);
+  assert.equal(needsRead("both", none), true);
+  assert.equal(needsRead("library", { library: true, recent: false }), false);
+  assert.equal(needsRead("recent", { library: false, recent: true }), false);
+  assert.equal(needsRead("both", { library: true, recent: true }), false);
+  assert.equal(needsRead("library", { library: true, recent: true }), false, "narrowing never reads");
 });

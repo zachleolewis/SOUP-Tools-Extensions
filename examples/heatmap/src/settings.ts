@@ -29,11 +29,13 @@ export class HeatmapSettings extends SettingTab {
       let reset: HTMLButtonElement | null = null;
       row
         .addColorPicker((c) => {
+          // Dragging fires `input` many times a second: the tab is redrawn live, the profile is saved once when the picker is let go (`change`).
           c.setValue(prefs()[key] || fallback).onChange((v) => {
-            set({ [key]: v } as Partial<Prefs>);
+            this.ctrl.setPrefs({ [key]: v } as Partial<Prefs>, false);
             describe();
             if (reset) reset.disabled = false;
           });
+          c.colorEl.addEventListener("change", () => this.ctrl.savePrefs());
           c.colorEl.setAttribute("aria-label", label);
         })
         .addExtraButton((b) => {

@@ -8,10 +8,8 @@
 //   - match details are asked for once per match and kept in memory (SOUP caches them on disk too).
 
 import type { Plugin } from "soup";
-import { buildMatch, parseUpdates, sessionStart, tierLabel, totals, type CompUpdate, type SessionMatch, type Totals } from "./logic";
+import { buildMatch, parseUpdates, sessionStart, strongest, tierLabel, totals, type CompUpdate, type Reason, type SessionMatch, type Totals } from "./logic";
 import type { DataSource } from "./source";
-
-export type Reason = "start" | "poll" | "event" | "manual";
 
 export interface Rank {
   tier: number;
@@ -105,7 +103,7 @@ export class SessionStore {
   /** Read the session. Calls that arrive while one is running become one more read afterwards. Never throws. */
   async refresh(reason: Reason): Promise<void> {
     if (this.busy) {
-      this.queued = reason === "poll" ? this.queued : reason;
+      this.queued = strongest(this.queued, reason); // a Refresh press is never replaced by a weaker reason
       return;
     }
     if (reason !== "manual" && Date.now() - this.lastStart < MIN_GAP_MS) return;

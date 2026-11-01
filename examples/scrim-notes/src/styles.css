@@ -24,6 +24,7 @@
 .sn-editor { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .sn-editor-head { display: flex; align-items: flex-start; gap: 12px; }
 .sn-match-name { font-family: "Space Grotesk", sans-serif; font-size: 1.1rem; font-weight: 700; margin: 0; }
+.sn-warn { margin: 0; padding: 8px 20px; border-bottom: 3px solid #000; background: hsl(var(--warning) / 0.25); font-size: 0.8rem; font-weight: 700; }
 .sn-sub { margin: 2px 0 0; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
 .sn-hint { margin: 0; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
 

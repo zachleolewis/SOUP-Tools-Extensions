@@ -19,6 +19,7 @@ export const setCtx = (c: Ctx) => void (ctx = c);
 
 const kit = () => ctx.plugin.app.ui.react.kit;
 const useData = () => useSyncExternalStore(ctx.store.subscribe, ctx.store.get);
+const useSaveError = () => useSyncExternalStore(ctx.store.subscribeStatus, ctx.store.getSaveError);
 
 // ---------------------------------------------------------------- what SOUP knows about a match
 
@@ -279,6 +280,7 @@ interface Pending {
 export function NotesTab({ active }: { active?: boolean }) {
   const { Button, EmptyState, inputCls } = kit();
   const data = useData();
+  const saveError = useSaveError();
   const [query, setQuery] = useState("");
   const [tag, setTag] = useState<Tag | "all">("all");
   const [selected, setSelected] = useState<string | null>(null);
@@ -353,6 +355,11 @@ export function NotesTab({ active }: { active?: boolean }) {
           Export all to Markdown
         </Button>
       </div>
+      {saveError && (
+        <p className="sn-warn" role="alert">
+          The notes could not be saved ({saveError}), so they are lost when SOUP closes. Export them to Markdown now. Saved data is limited to 1 MB per profile.
+        </p>
+      )}
       <div className="sn-filters">
         <input className={`${inputCls} sn-search`} type="search" placeholder="Search notes, tags, maps..." aria-label="Search notes" value={query} onChange={(e) => setQuery(e.target.value)} />
         <TagChips value={tag} onChange={setTag} withAll />

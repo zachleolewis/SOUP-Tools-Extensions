@@ -254,6 +254,15 @@ export interface Prefs {
 }
 export const DEFAULT_PREFS: Prefs = { killColor: "", deathColor: "", startSource: "both" };
 
+/** Which sources the last read actually fetched. */
+export interface Loaded {
+  library: boolean;
+  recent: boolean;
+}
+
+/** Does showing `source` need matches the last read did not fetch? (Recent matches are only fetched when wanted, the Library only when not "recent only".) */
+export const needsRead = (source: "library" | "recent" | "both", loaded: Loaded): boolean => (source !== "recent" && !loaded.library) || (source !== "library" && !loaded.recent);
+
 /** Whatever `loadData` returned, as well-formed Prefs: a colour must be #rrggbb, anything unknown is the default. */
 export function normalizePrefs(raw: unknown): Prefs {
   const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;

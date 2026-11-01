@@ -148,7 +148,7 @@ class NotesSettings extends SettingTab {
     new Setting(el).setName("This profile's notes").setHeading();
     new Setting(el)
       .setName("Delete all notes in this profile")
-      .setDesc("Other profiles keep theirs. This cannot be undone: export to Markdown first if you want a copy.")
+      .setDesc("Other profiles keep theirs. This cannot be undone: export to Markdown first if you want a copy. A profile's notes can be 1 MB in all; past that they are not saved, and Scrim Notes says so.")
       .addButton((b) =>
         b
           .setButtonText("Delete all notes")

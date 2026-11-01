@@ -5,7 +5,7 @@
 // in step. A failure in any step is shown (a Notice and a log line) and the next step, and the next match, carry on.
 
 import { Notice, normalizePath, type Plugin } from "soup";
-import { DEFAULT_RULES, factsOf, findFolder, modeAllowed, pathOf, planFor, resultFor, topFragger, type FolderLite, type Plan, type ReplayLite, type Rules } from "./logic";
+import { DEFAULT_RULES, factsOf, findFolder, isDiscordWebhook, modeAllowed, pathOf, planFor, resultFor, topFragger, undoSteps, type FolderLite, type Plan, type ReplayLite, type Rules } from "./logic";
 
 export interface ReplayFull extends ReplayLite {
   vrfPath: string | null;
@@ -62,6 +62,8 @@ export class Organizer {
   private saveTimer: number | undefined;
   /** Jobs run one at a time, so two matches saved close together never fight over the same folder. */
   private chain: Promise<unknown> = Promise.resolve();
+  /** Set when the extension is turned off: queued jobs and the retry loop stop instead of touching the Library. */
+  private disposed = false;
 
   constructor(private plugin: Plugin) {}
 
@@ -97,6 +99,11 @@ export class Organizer {
     this.saveTimer = window.setTimeout(() => this.save(), 400);
   }
 
+  /** The extension is being turned off: nothing queued runs any more. */
+  dispose(): void {
+    this.disposed = true;
+  }
+
   flush(): Promise<void> {
     window.clearTimeout(this.saveTimer);
     this.save();
@@ -118,7 +125,7 @@ export class Organizer {
     const text = `${what}: ${errText(e)}`;
     this.app.log.warn(text);
     this.note("error", text);
-    new Notice(`Auto Organizer: ${text}`);
+    new Notice(`Auto Organizer: ${text}`, 8000, "error");
   }
 
   private library(): LibraryApi {
@@ -190,6 +197,7 @@ export class Organizer {
       let done = 0;
       let failed = 0;
       for (const id of replayIds) {
+        if (this.disposed) break;
         const r = (await this.library().list()).replays.find((x) => x.id === id);
         if (!r) continue;
         const ok = await this.organizeOne(r, "manual");
@@ -202,12 +210,13 @@ export class Organizer {
 
   /** SOUP saved a finished match (`match-capture/auto-saved`): find its replay and file it. */
   onAutoSaved(matchId: string): Promise<void> {
-    if (!this.data.rules.enabled) return Promise.resolve();
+    if (!this.data.rules.enabled || this.disposed) return Promise.resolve();
     return this.enqueue(async () => {
       let r: ReplayFull | undefined;
       // The catalog can lag the event by a moment.
       for (let i = 0; i < 4 && !r; i++) {
         if (i > 0) await new Promise((res) => setTimeout(res, 1500));
+        if (this.disposed) return;
         try {
           r = (await this.library().list()).replays.find((x) => x.matchId === matchId);
         } catch (e) {
@@ -323,7 +332,7 @@ export class Organizer {
 
   private async post(embed: { title: string; description: string; timestamp?: string }): Promise<void> {
     const url = this.data.rules.webhookUrl.trim();
-    if (!/^https?:\/\//i.test(url)) throw new Error("the address does not start with https://");
+    if (!isDiscordWebhook(url)) throw new Error("the address is not a Discord webhook address (https://discord.com/api/webhooks/...)");
     // The accent colour of the person's theme, as the integer Discord wants. (SOUP's log lists the address of a request; a webhook address is a secret, so do not share your log.)
     const accent = getComputedStyle(document.documentElement).getPropertyValue("--forest-300").trim();
     await this.app.requestUrl({ url, method: "POST", body: { username: "SOUP", embeds: [{ ...embed, color: colorInt(accent), footer: { text: "Auto Organizer" } }] }, timeoutMs: 15000 });
@@ -331,7 +340,7 @@ export class Organizer {
 
   // ------------------------------------------------------------ undo
 
-  /** Put a replay back where it was and what it was called, if nobody changed it since. */
+  /** Put a replay back where it was and what it was called, if nobody changed it since. Safe to run again after a failure: the part already back is skipped. */
   undo(entryId: string): Promise<void> {
     return this.enqueue(async () => {
       const entry = this.data.log.find((e) => e.id === entryId);
@@ -341,10 +350,11 @@ export class Organizer {
         const lib = this.library();
         const r = (await lib.list()).replays.find((x) => x.id === u.replayId);
         if (!r) throw new Error("the replay is not in the Library any more");
-        if (r.folderId !== u.to.folderId || r.name !== u.to.name) throw new Error("it was changed after it was organized, so it is left as it is");
-        // The reverse of what was done: the name first, then the folder.
-        if (r.name !== u.from.name) await lib.renameReplay(r.id, u.from.name);
-        if (r.folderId !== u.from.folderId) await lib.moveItem("replay", r.id, u.from.folderId);
+        const steps = undoSteps(r, u);
+        if (typeof steps === "string") throw new Error(steps);
+        // The reverse of what was done: the name first, then the folder. A step that failed last time is simply the one still to do.
+        if (steps.rename) await lib.renameReplay(r.id, u.from.name);
+        if (steps.move) await lib.moveItem("replay", r.id, u.from.folderId);
         const folders = (await lib.list()).folders;
         this.commit({ ...this.data, log: this.data.log.map((e) => (e.id === entryId ? { ...e, undone: true } : e)) });
         const back = u.from.folderId ? pathOf(folders, u.from.folderId).join("/") : "the top of the Library";
