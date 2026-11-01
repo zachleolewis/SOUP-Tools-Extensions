@@ -31,6 +31,8 @@ Replays and folders on disk, per profile.
 | `renameReplay(id, name)`, `deleteReplay(id)`, `moveItem(kind, id, folderId)`, `setPinned(kind, id, pinned)`, `reorder(kind, orderedIds)` | Replays and ordering (`kind` is `"replay"` or `"folder"`) |
 | `revealPath(path)`, `openRoot()` | Show in Explorer |
 
+[`examples/auto-organizer`](../examples/auto-organizer/src/organizer.ts) uses the write calls: it creates the folders a template needs, moves a replay into one and renames it, and undoes both. It goes through `app.modules.get("library")` (the same object SOUP's screens use), so the catalog and the disk stay in step.
+
 ## match-capture
 
 Match history and live state, through the Riot Client.

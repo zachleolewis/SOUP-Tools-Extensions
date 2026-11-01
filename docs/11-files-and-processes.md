@@ -45,6 +45,8 @@ SOUP checks the folder twice a second and reports files that were created, chang
 
 Writes, deletes and renames **outside your own folders** are logged at INFO (`[ext-<id>] writes outside its own folders: <path>`). Reads, and writes inside your own folders, are DEBUG lines. Nothing is blocked.
 
+[`examples/auto-organizer`](../examples/auto-organizer/src/organizer.ts) uses `copy` for its backup: it makes the folder, never overwrites a file that is already there, and reports a folder that cannot be made as a normal failure.
+
 ## app.process
 
 ```ts snippet

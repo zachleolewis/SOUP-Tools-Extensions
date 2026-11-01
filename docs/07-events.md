@@ -66,6 +66,8 @@ plugin.registerEvent(ref);
 
 Emitting a name that does not start with `<your id>/` throws. Events stay inside SOUP's window; they are not sent anywhere.
 
+[`examples/auto-organizer`](../examples/auto-organizer/src/main.tsx) reacts to `match-capture/auto-saved`: the payload names the match, and it finds the replay in the Library and files it. Events can be sent by hand while you develop (the self-test does it), so you never have to play a match to try a handler.
+
 ## Notes
 
 - Events can arrive in bursts (`library/changed` after an import). Debounce your reaction (`debounce` from `soup`).

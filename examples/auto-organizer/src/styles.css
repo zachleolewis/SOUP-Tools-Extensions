@@ -1,0 +1,32 @@
+/* Auto Organizer. Drawn from SOUP's theme variables, so it follows the person's palette. */
+
+.ao-panel { display: flex; flex-direction: column; border: 3px solid #000; background: hsl(var(--forest-900)); box-shadow: 5px 5px 0 0 #000; color: hsl(var(--foreground)); }
+.ao-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 3px solid #000; background: hsl(var(--forest-700)); }
+.ao-title { font-family: "Space Grotesk", sans-serif; font-size: 1.25rem; font-weight: 700; margin: 0; }
+.ao-subtitle { font-family: "Space Grotesk", sans-serif; font-size: 1rem; font-weight: 700; margin: 0; }
+.ao-switch { display: inline-flex; align-items: center; gap: 10px; font-family: "Space Mono", monospace; font-size: 0.75rem; font-weight: 700; }
+.ao-grow { flex: 1; min-width: 0; }
+.ao-hint { margin: 0; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; color: hsl(var(--foreground) / 0.6); }
+
+.ao-rules { display: grid; grid-template-columns: 110px 1fr; gap: 8px 14px; margin: 18px 20px 4px; padding: 14px 16px; border: 2px solid #000; background: hsl(var(--forest-700)); box-shadow: 3px 3px 0 0 #000; }
+.ao-rules dt { font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: hsl(var(--foreground) / 0.65); align-self: center; }
+.ao-rules dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ao-rules code { font-family: "Space Mono", monospace; font-size: 0.85rem; padding: 1px 6px; border: 2px solid #000; background: hsl(var(--forest-900)); }
+.ao-panel > .ao-hint { padding: 6px 20px 0; }
+
+.ao-logbar { display: flex; align-items: center; gap: 10px; padding: 18px 20px 8px; }
+.ao-log { list-style: none; margin: 0; padding: 0 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+.ao-entry { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 2px solid #000; background: hsl(var(--forest-700)); box-shadow: 2px 2px 0 0 #000; }
+.ao-when { font-family: "Space Mono", monospace; font-size: 0.7rem; font-weight: 700; color: hsl(var(--foreground) / 0.65); white-space: nowrap; }
+.ao-kind { min-width: 64px; text-align: center; border: 2px solid #000; background: hsl(var(--forest-900)); padding: 0 6px; font-family: "Space Mono", monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; }
+.ao-organized .ao-kind { background: hsl(var(--forest-300)); color: #000; }
+.ao-error .ao-kind { background: hsl(var(--warning)); color: #000; }
+.ao-text { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+
+.ao-dialog { display: flex; flex-direction: column; gap: 12px; }
+.ao-done { margin: 0; font-weight: 700; color: hsl(var(--forest-300)); }
+.ao-preview { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 42vh; overflow: auto; }
+.ao-preview li { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border: 2px solid #000; background: hsl(var(--forest-700)); }
+.ao-preview li.ao-same { opacity: 0.6; }
+.ao-from { font-weight: 700; }
+.ao-to { font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; color: hsl(var(--forest-300)); overflow-wrap: anywhere; }

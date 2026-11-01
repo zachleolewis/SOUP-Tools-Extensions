@@ -1,0 +1,11 @@
+{
+  "id": "auto-organizer",
+  "name": "Auto Organizer",
+  "version": "1.0.0",
+  "minAppVersion": "2.3.0",
+  "apiVersion": "^1.0",
+  "description": "Files new matches into folders, renames them, backs them up and posts a summary to Discord, by rules you set. Everything has an Undo.",
+  "author": "SOUP",
+  "uses": ["filesystem", "network"],
+  "requiresModules": ["library", "match-capture"]
+}
