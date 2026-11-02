@@ -54,7 +54,7 @@ SOUP does not write a changelog of its own. Put what changed in the GitHub relea
 
 ## Getting known
 
-There is no review: SOUP does not approve extensions. SOUP can show a community list (the repository `zachleolewis/SOUP-Tools-Community`, opened from Settings > Extensions > Browse); being on it is a suggestion that the repository meets a few basic rules, not a check of your code, and every install from it shows the same warning. Whether or not you are listed, tell people where it is: your repository's README, Discord, a post. The README should say what the extension does, which of the things in [guide 17](17-responsibility.md) it uses (Riot, files, network, programs), and how to install it:
+There is no review: SOUP does not approve extensions. SOUP can show a community list (the repository `zachleolewis/SOUP-Tools-Community-Extensions`, opened from Settings > Extensions > Browse); being on it is a suggestion that the repository meets a few basic rules, not a check of your code, and every install from it shows the same warning. Whether or not you are listed, tell people where it is: your repository's README, Discord, a post. The README should say what the extension does, which of the things in [guide 17](17-responsibility.md) it uses (Riot, files, network, programs), and how to install it:
 
 ```
 In SOUP: Settings > Extensions > From GitHub > your-name/your-extension
