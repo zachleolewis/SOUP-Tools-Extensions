@@ -21,6 +21,8 @@ export default class AutoOrganizer extends Plugin {
   org = new Organizer(this);
 
   async onload() {
+    // Cleanups run in reverse order, so this first one runs last: the line says every listener is gone (a test waits for it).
+    this.register(() => this.app.log.info("auto-organizer unloaded: it no longer listens for saved matches"));
     await this.org.load();
     setCtx({ plugin: this, org: this.org });
 

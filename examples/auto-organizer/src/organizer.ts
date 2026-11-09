@@ -210,7 +210,12 @@ export class Organizer {
 
   /** SOUP saved a finished match (`match-capture/auto-saved`): find its replay and file it. */
   onAutoSaved(matchId: string): Promise<void> {
-    if (!this.data.rules.enabled || this.disposed) return Promise.resolve();
+    if (this.disposed) return Promise.resolve();
+    if (!this.data.rules.enabled) {
+      // One INFO line, so a person (or a test) can see the match was left alone on purpose.
+      this.app.log.info(`automatic organizing is off: left match ${matchId} alone`);
+      return Promise.resolve();
+    }
     return this.enqueue(async () => {
       let r: ReplayFull | undefined;
       // The catalog can lag the event by a moment.
