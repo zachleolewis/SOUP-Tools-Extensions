@@ -55,10 +55,10 @@ The full walkthrough is [docs/01-getting-started.md](docs/01-getting-started.md)
 
 | Folder | What |
 |---|---|
-| [`docs/`](docs/) | 19 short guides, from getting started to responsibility. [`docs/api/`](docs/api/README.md) is the reference generated from the typings |
+| [`docs/`](docs/) | 20 short guides, from getting started to responsibility. [`docs/api/`](docs/api/README.md) is the reference generated from the typings |
 | [`types/soup.d.ts`](types/soup.d.ts) | The typings for `import ... from "soup"`. Every TypeScript block in the docs is checked against this file in CI |
 | [`template/`](template/) | A starter project: Vite and TypeScript, `soup` and React provided by SOUP, and a GitHub Action that builds a release when you push a tag |
-| [`examples/`](examples/) | Four finished extensions you can install and copy: `scrim-notes`, `heatmap`, `session-tracker` and `auto-organizer` |
+| [`examples/`](examples/) | Five finished extensions you can install and copy: `scrim-notes`, `heatmap`, `session-tracker`, `auto-organizer` and `stat-card` (a Boards card) |
 
 ## Stability
 

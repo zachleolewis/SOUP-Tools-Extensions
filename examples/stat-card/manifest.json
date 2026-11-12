@@ -1,0 +1,11 @@
+{
+  "id": "stat-card",
+  "name": "Stat Card",
+  "version": "1.0.0",
+  "minAppVersion": "3.0.0",
+  "apiVersion": "^1.0",
+  "description": "A Boards card that shows one number: the total, average, highest or lowest of a column.",
+  "author": "SOUP",
+  "links": [{ "label": "Documentation", "url": "https://github.com/zachleolewis/SOUP-Tools-Extensions/tree/main/examples/stat-card#readme" }],
+  "requiresModules": ["boards"]
+}

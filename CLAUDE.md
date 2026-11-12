@@ -1,6 +1,6 @@
 # SOUP-Tools-Extensions - notes for maintainers and agents
 
-Public docs, typings, starter template and four example extensions for SOUP Tools extensions. The README is the public entry
+Public docs, typings, starter template and five example extensions for SOUP Tools extensions. The README is the public entry
 point; `docs/` are the guides (numbered), `docs/api/README.md` is the generated reference.
 
 ## Commands

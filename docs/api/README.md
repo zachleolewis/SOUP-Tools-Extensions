@@ -211,7 +211,10 @@ export interface App {
   /** The built-in modules (their frontend APIs) and whether they are on. */
   modules: {
     isEnabled(module: string): boolean;
-    /** The module's frontend API object (the one SOUP's own screens use), or undefined when the module is off. */
+    /**
+     * The module's frontend API object (the one SOUP's own screens use), or undefined when the module is off.
+     * Boards: `app.modules.get<BoardsApi>("boards")` to add cards (see BoardsApi).
+     */
     get<T = unknown>(module: string): T | undefined;
   };
   library: {
@@ -230,6 +233,11 @@ export interface App {
     moveItem(kind: "replay" | "folder", id: string, folderId: string | null): Promise<void>;
     /** To the Library's trash (the files go to `.trash`; nothing is erased). */
     deleteReplay(replayId: string): Promise<void>;
+    /**
+     * SOUP's standard Open picker: the Library's items of `kinds` (`["board"]`) in a dialog with search. Resolves to the chosen
+     * items, `[]` when the user cancels. Read only; nothing in the Library changes.
+     */
+    pick(options: { kinds: string[]; multiple?: boolean; title?: string }): Promise<LibraryItem[]>;
   };
   matches: {
     history(): Promise<unknown>;
@@ -262,17 +270,23 @@ export interface App {
 
   /** The file system. Any path; a relative path starts in `dataDir`. */
   fs: {
+    /** Loads the whole file: refused over 256 MB (send a big file with `net.upload`, which streams it). */
     read(path: string): Promise<Uint8Array>;
+    /** As `read` (same 256 MB limit). */
     readText(path: string): Promise<string>;
     write(path: string, data: string | Uint8Array | ArrayBuffer): Promise<void>;
     append(path: string, data: string | Uint8Array | ArrayBuffer): Promise<void>;
-    /** Folders first, then by name. */
+    /** Folders first, then by name. Refused for a folder with more than 20,000 entries. */
     list(path: string): Promise<FsEntry[]>;
     stat(path: string): Promise<FsStat>;
     exists(path: string): Promise<boolean>;
     mkdir(path: string): Promise<void>;
     remove(path: string, o?: { recursive?: boolean }): Promise<void>;
     rename(from: string, to: string): Promise<void>;
+    /**
+     * A file, or a folder with everything in it. Refused when `to` is inside `from`. Links (symbolic links, junctions) inside
+     * a folder are skipped, not followed; a folder more than 64 levels deep is an error.
+     */
     copy(from: string, to: string): Promise<void>;
     /** Call `cb` when something under `path` is created, changed or removed (checked twice a second). */
     watch(path: string, cb: (e: WatchEvent) => void): Promise<Stoppable>;
@@ -314,7 +328,11 @@ export interface App {
     /** Renew an access token. The answer usually has no `refreshToken`: keep the one you have. */
     refresh(o: RefreshOptions): Promise<OAuthTokens>;
   };
-  /** Small secrets (a refresh token, up to 8 KB each) in Windows Credential Manager, private to this extension; deleted with its data. Keys are 1 to 128 letters, digits, `.`, `-` and `_`. */
+  /**
+   * Small secrets (a refresh token, up to 8 KB each) in Windows Credential Manager; deleted with this extension's data. Keys
+   * are 1 to 128 letters, digits, `.`, `-` and `_`. Not private: extensions are fully trusted and share one store, so another
+   * installed extension can read, change or delete these.
+   */
   secrets: {
     get(key: string): Promise<string | null>;
     set(key: string, value: string): Promise<void>;
@@ -353,8 +371,11 @@ export interface App {
   ui: {
     /** An awaited yes/no dialog. */
     confirm(o: { title: string; message: string; confirmLabel?: string; destructive?: boolean }): Promise<boolean>;
-    /** Switch to a tab by its id (`<extension id>.<tab id>` for an extension's tab). */
-    navigate(tabId: string): void;
+    /**
+     * Switch to a tab by its id (`<extension id>.<tab id>` for an extension's tab). `target` is handed to that tab once, for a
+     * deep link: the Library reads `"<section id>:<entry id>"`, for example `"datasets:<dataset id>"`.
+     */
+    navigate(tabId: string, target?: string): void;
     /** A separate window for the extension's own page (a file of the extension, or an https address). */
     openWindow(o: { url: string; title?: string; width?: number; height?: number; alwaysOnTop?: boolean }): Promise<{ label: string; url: string; close(): Promise<boolean> }>;
     /** SOUP's React and its UI kit, so an extension looks native. */
@@ -386,6 +407,7 @@ export interface App {
     dataDir: string;
     machineDir: string;
     saveDir: string;
+    /** The Library folder; follows a move of it (Settings > Library folder) while the extension runs. */
     libraryRoot: string;
     valorantDemos: string;
     vr3dDir: string;
@@ -404,6 +426,24 @@ export interface App {
 }
 ```
 
+### BoardsApi
+
+```ts
+/** The Boards module's API: `app.modules.get<BoardsApi>("boards")`. */
+export interface BoardsApi {
+  /**
+   * Add a card to the add menu. Returns a function that removes it: pass it to `this.register(...)` in a Plugin so the card goes
+   * when the extension unloads.
+   */
+  registerCard<O extends object>(card: CardDefinition<O>): () => void;
+  /**
+   * @deprecated The earlier shape (settings version 0, group Other, match data), kept until it is removed; use `registerCard`.
+   * Returns a function that removes the card.
+   */
+  registerCardView<O extends object>(view: CardView<O>): () => void;
+}
+```
+
 ### ButtonComponent
 
 ```ts
@@ -414,6 +454,104 @@ export interface ButtonComponent {
   setWarning(): this;
   setDisabled(d: boolean): this;
   onClick(cb: () => void): this;
+}
+```
+
+### CardNeeds
+
+```ts
+/** What a card needs to draw. */
+export interface CardNeeds {
+  /** `match`: the saved match data every game has; `replay`: decoded replays (greyed in the add menu until some exist). */
+  tier: "match" | "replay";
+}
+```
+
+### CardSelection
+
+```ts
+/** What a card has selected, published to every card wired to it (the source card is never filtered by it). */
+export interface CardSelection {
+  field: string;
+  values: string[];
+  /** What to call each value on screen (a player's name for their PUUID key); `values` when absent. */
+  labels?: string[];
+}
+```
+
+### CardView
+
+```ts
+/** A way to draw a frame on a card. General on purpose (a bar chart of any two columns): the user picks the data and the columns. */
+export interface CardView<O extends object = Record<string, unknown>> {
+  /**
+   * Stable, and namespaced with your extension's id by convention (`my-extension.chart`). Letters, digits and hyphens, a dot, then
+   * letters, digits, hyphens and dots (no underscores or spaces).
+   */
+  id: string;
+  label: string;
+  icon: CardIcon;
+  /** One line for the add menu. */
+  description: string;
+  defaultOptions: O;
+  /** @deprecated Use `version` and `migrations`. Runs on every read; removed together with `registerCardView`. */
+  migrateOptions?: (stored: Partial<O>) => Partial<O>;
+  /** The settings the panel shows, in order. */
+  optionSpecs: CardOptionSpec[];
+  /** How many stats the card draws (a bar takes 1 to 4, a radar 3 to 8); `label` says it in words for the stat picker. Absent: any number. */
+  statSlots?: { min: number; max: number; label?: string };
+  /**
+   * Settings that name stat columns in a shape `optionSpecs` cannot describe (a custom chart's definition), moved with the card's
+   * stats: `replaced` maps an old column to its new one. Returns the changed settings, or nothing when none changed.
+   */
+  moveStats?: (options: O, replaced: Map<string, string>, removed: string[], added: string[]) => Partial<O> | null;
+  /** Sensible settings for new data (first text column as the category, first number as the value...). */
+  autoOptions?: (frame: DataFrame, stored: Partial<O>) => Partial<O>;
+  /** Settings a NEW card of this type starts with, kept in its board file. */
+  initialOptions?: () => Partial<O>;
+  /** The size a new card starts at, in pixels (a small card is about 240 x 160). */
+  defaultSize: { width: number; height: number };
+  component: ComponentType<CardViewProps<O>>;
+  /** The settings' version: a card stores the version its settings were written at, `migrations` bring them up to date. */
+  version?: number;
+  /** `migrations[n]` turns settings of version n into version n + 1; one per step, run once when a card is read. */
+  migrations?: Record<number, (stored: Record<string, unknown>) => Record<string, unknown>>;
+  /** The add menu's group. */
+  group?: CardGroup;
+  /** What data the card needs. */
+  needs?: CardNeeds;
+  /**
+   * Chart types and components from the ECharts copy SOUP itself draws with, loaded before the card's first chart. An extension
+   * that bundles its own chart library does not set this.
+   */
+  echarts?: () => Promise<any[]>;
+  /** The card's help page as Markdown, shown from the add menu. */
+  docs?: string;
+  /** A tiny frame the add menu's preview draws. */
+  sample?: () => DataFrame;
+}
+```
+
+### CardViewProps
+
+```ts
+/** What Boards gives a card's component. */
+export interface CardViewProps<O> {
+  /** The source's frame after the board filters and every incoming selection. */
+  frame: DataFrame;
+  options: O;
+  setOptions: (patch: Partial<O>) => void;
+  /** This card's own selection (to highlight), or null. */
+  selected: CardSelection | null;
+  /** Publish a selection to wired cards; an empty `values` clears it. */
+  select: (selection: CardSelection | null) => void;
+  /** Open this card's settings panel (for a "Pick ..." button in the card's own messages). */
+  openSettings: () => void;
+  /**
+   * Selections from wires set to Highlight: the frame keeps every row and the card emphasises the rows that match (a card that
+   * cannot shows all rows as usual). Empty when no wire highlights.
+   */
+  highlight: CardSelection[];
 }
 ```
 
@@ -440,6 +578,16 @@ export interface CommandSpec {
   /** `Ctrl+Shift+N`, `Alt+F2`. A shortcut needs Ctrl or Alt; Ctrl+K belongs to the command palette. */
   hotkey?: string;
   callback: () => void | Promise<void>;
+}
+```
+
+### DataFrame
+
+```ts
+/** One table of values: the single data shape every source, filter and card speaks. */
+export interface DataFrame {
+  columns: string[];
+  rows: unknown[][];
 }
 ```
 
@@ -474,7 +622,10 @@ export interface DownloadOptions {
   /** Default GET. */
   method?: string;
   headers?: Record<string, string>;
-  /** Where to write. A relative path starts in `dataDir`; parent folders are created. */
+  /**
+   * Where to write. A relative path starts in `dataDir`; parent folders are created. The answer goes to a part file of its
+   * own (`<to>.soup-part-...`) that is renamed to `to` when complete and removed on any failure.
+   */
   to: string;
   /** Refuse an answer larger than this many bytes (default 4 GiB, at most 100 GiB). */
   maxBytes?: number;
@@ -570,6 +721,10 @@ export interface Handle {
 
 ```ts
 /** A stream of lines from a program. Lines that arrived before `on` was called are replayed first. */
+/**
+ * A program's output, line by line. Bytes that are not UTF-8 (a console code page) arrive as U+FFFD instead of ending the
+ * stream; a line longer than 64 KiB is cut at 64 KiB and the rest of it dropped.
+ */
 export interface LineStream {
   on(cb: (line: string) => void): Stoppable;
   /** Everything received so far (the last 5000 lines), joined by newlines. */
@@ -703,7 +858,7 @@ export interface RequestUrlOptions {
   /** A string, bytes, or any JSON value (sent as JSON with a Content-Type unless you set one). */
   body?: string | ArrayBuffer | Uint8Array | Record<string, unknown> | unknown[] | null;
   timeoutMs?: number;
-  /** Only for 127.0.0.1, localhost and ::1. */
+  /** Only for a host on this PC (localhost, 127.x.x.x, ::1); redirects are not followed, the 3xx answer is returned. */
   allowSelfSigned?: boolean;
   /** Throw on a status of 400 or more (default true, like Obsidian). */
   throw?: boolean;
@@ -757,7 +912,10 @@ export interface SpawnOptions {
   env?: Record<string, string>;
   /** No console window (default true). */
   hidden?: boolean;
-  /** Keep running when the extension unloads or SOUP exits (default false). */
+  /**
+   * Keep running when the extension unloads or SOUP exits (default false). A detached program's stdout and stderr go
+   * nowhere (nobody could read them after SOUP exits), so its `stdout` / `stderr` streams stay empty; write to a file instead.
+   */
   detached?: boolean;
 }
 ```
@@ -837,6 +995,80 @@ export interface UploadOptions {
 ```
 
 ## Data types
+
+### CardDefinition
+
+```ts
+/**
+ * A card as `registerCard` takes it: a view with its settings version, group and data needs all set. `registerCard` throws an
+ * Error naming the card when: the id is not `<namespace>.<name>` in those characters; the id is already registered; `version` is
+ * not a whole number of 0 or more; a migration is missing for any step below `version`; a migration sits at or past `version`; the
+ * group is not one of `CardGroup`; `needs.tier` is not `match` or `replay`.
+ */
+export type CardDefinition<O extends object = Record<string, unknown>> = CardView<O> & Required<Pick<CardView<O>, "version" | "group" | "needs">>;
+```
+
+### CardGroup
+
+```ts
+/** The add menu's groups, fixed by SOUP; a card picks one. */
+export type CardGroup = "Rounds" | "Duels" | "Economy" | "Maps" | "Players" | "Compare" | "Tables and numbers" | "Other";
+```
+
+### CardIcon
+
+```ts
+/** A card's icon: a lucide icon, or any component that draws one at the size its class names give (an extension's own SVG). */
+export type CardIcon = ComponentType<{ className?: string }>;
+```
+
+### CardOptionSpec
+
+```ts
+/**
+ * One setting of a card, described as data so Boards draws the settings panel for every card the same way (a card never builds
+ * its own settings UI). `column` picks a column of the card's data; `kind` limits it to numbers or text.
+ */
+export type CardOptionSpec = {
+  key: string;
+  label: string;
+  hint?: string;
+  /** The settings panel's section: "Show" (what to draw; the default) or "Style" (how it looks). Any other name shows as a sub-heading under Show. */
+  section?: string;
+  /** A column the card fills from its data (positions, the color groups): under Advanced, whatever the data. */
+  advanced?: boolean;
+  /** Filled in by the card from its data when that data is Stats: then under Advanced; up front for your own SQL or an extension's data. */
+  auto?: boolean;
+  /**
+   * A "column" setting that takes the card's stat at this place (0 = the first). Adding or removing a stat gives these out again
+   * by place; past the last stat it is none (`allowNone`) or the last stat.
+   */
+  stat?: number;
+  /** A sub-heading the setting sits under inside its section, for the settings next to it with the same name. */
+  group?: string;
+  /** Takes half the panel's width, beside another half setting. */
+  half?: boolean;
+  /** Shown only while this holds: a setting that means nothing with the other choices stays out of the way. */
+  when?: (options: Record<string, unknown>) => boolean;
+  /** The reason the value cannot be used, in plain words, shown under the setting; null when all is well. */
+  problem?: (options: Record<string, unknown>) => string | null;
+} & (
+  | { type: "column"; kind?: "number" | "text" | "boolean" | "any"; allowNone?: boolean }
+  /** Several columns. In a card with `statSlots` only number columns, at most `statSlots.max - slotsTaken` of them. */
+  | { type: "columns"; slotsTaken?: number }
+  | { type: "select"; choices: [string, string][] }
+  /** `zero`: 0 means "no limit" or "automatic"; the panel offers it as a plain choice named by the first item beside a number. */
+  | { type: "number"; min?: number; max?: number; step?: number; zero?: [string, number] }
+  | { type: "range"; min: number; max: number; step: number; zero?: [string, number] }
+  /** A number that may be left empty for automatic (0 is a real value here, unlike `zero`): stored as null when empty. */
+  | { type: "bound"; min?: number; step?: number | "any" }
+  | { type: "boolean" }
+  | { type: "text"; placeholder?: string }
+  | { type: "color" }
+  /** The card draws this setting itself: given the card's settings and data. */
+  | { type: "custom"; render: (p: { options: Record<string, unknown>; frame: DataFrame | null; setOptions: (patch: Record<string, unknown>) => void }) => import("react").ReactNode }
+);
+```
 
 ### ClientEvent
 
@@ -980,6 +1212,43 @@ sortIndex: number,
 createdAt: number, };
 ```
 
+### LibraryItem
+
+```ts
+/**
+ * An item kept as one file (a board), as the UI sees it (26_LIBRARY_DESIGN.md 3).
+ */
+export type LibraryItem = { id: string, 
+/**
+ * `board`; the frontend's `libraryKinds` says how to show and open it.
+ */
+kind: string, folderId: string | null, name: string, pinned: boolean, sortIndex: number, 
+/**
+ * Epoch ms.
+ */
+createdAt: number, 
+/**
+ * Epoch ms of the last save.
+ */
+updatedAt: number, openedAt: number | null, 
+/**
+ * Absolute path of the file.
+ */
+path: string, sizeBytes: number, 
+/**
+ * The file is not where the Library last saw it.
+ */
+missing: boolean, 
+/**
+ * What the owning module wrote for the tile (`map`, `pages`...).
+ */
+summary: Record<string, unknown>, tags: Array<string>, 
+/**
+ * What it reads (a board: its datasets).
+ */
+uses: Array<LibraryUseRef>, };
+```
+
 ### LibraryReplay
 
 ```ts
@@ -1022,7 +1291,55 @@ startedAt: number | null,
 /**
  * Epoch ms; `None` until the first "View in Client".
  */
-lastPlayedAt: number | null, pinned: boolean, sortIndex: number, };
+lastPlayedAt: number | null, 
+/**
+ * Epoch ms when it was last opened from the Library (the Library's Recent list); `None` until then.
+ */
+openedAt: number | null, pinned: boolean, sortIndex: number, 
+/**
+ * Ids of the tags on it (`LibrarySnapshot::tags` has the vocabulary).
+ */
+tags: Array<string>, uses: Array<LibraryUseRef>, };
+```
+
+### LibrarySnapshot
+
+```ts
+export type LibrarySnapshot = { root: string, folders: Array<LibraryFolder>, replays: Array<LibraryReplay>, 
+/**
+ * Items kept as one file (boards), of every kind the Library knows.
+ */
+items: Array<LibraryItem>, 
+/**
+ * The profile's tag vocabulary.
+ */
+tags: Array<LibraryTag>, 
+/**
+ * Tags of datasets: dataset id -> tag ids.
+ */
+datasetTags: { [key in string]?: Array<string> }, };
+```
+
+### LibraryTag
+
+```ts
+/**
+ * One tag of the profile's vocabulary (26_LIBRARY_DESIGN.md 3): a name (unique, compared without case) and a color.
+ */
+export type LibraryTag = { id: string, name: string, 
+/**
+ * Hex color of the chip.
+ */
+color: string, };
+```
+
+### LibraryUseRef
+
+```ts
+/**
+ * An item another item reads: `kind` is `game`, `board`, `strategy` or `dataset`.
+ */
+export type LibraryUseRef = { kind: string, id: string, };
 ```
 
 ### OAuthTokens
@@ -1055,9 +1372,13 @@ export type ProfileInfo = { id: string, name: string, kind: ProfileKind, color: 
  */
 damaged: boolean, 
 /**
- * Where this profile's replays are saved (its library is `<this>\Library`).
+ * This profile's save folder (`core.saveDirectory`).
  */
-saveDirectory: string, };
+saveDirectory: string, 
+/**
+ * This profile's Library folder: its `library.folder` setting, else `<save folder>\Library`.
+ */
+libraryFolder: string, };
 ```
 
 ### ProfileKind
