@@ -8,6 +8,8 @@
 
 **How do I write one?** [Getting started](01-getting-started.md). You write TypeScript, build with the template, and link the `dist/` folder in SOUP.
 
+**Can an extension add a chart or a number to Boards?** Yes: a card, registered with `registerCard` on the Boards module. See [Boards cards](20-cards.md).
+
 **Do I have to use TypeScript or React?** No. `main.js` is a plain ES module; the template uses TypeScript and Vite because they give you the typings. Use `mount(el)` with any framework you bundle yourself, or no framework.
 
 **Can I use npm packages?** Yes: they are bundled into `main.js` by the build. Do not bundle React yourself: import `react` and SOUP's copy is used (the template does this). Keep the bundle small.
