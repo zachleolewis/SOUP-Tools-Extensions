@@ -114,6 +114,22 @@ A card starts at `version: 0` with no migrations.
 - The theme is a set of CSS variables on `<html>`: `background: hsl(var(--forest-900))`, `color: hsl(var(--forest-300))`. A card styled with them follows the person's palette ([guide 5](05-ui.md#looking-like-soup)). SOUP's CSS class names are not API: do not rely on them, and style the card with inline styles or your own `styles.css`.
 - Keep text short and plain; no emoji.
 
+## Drawing a registered series in your own card
+
+`registerSeries` adds a series that a chart definition can name. A card that draws its own ECharts option can use one too:
+`boards.seriesOption(id, input)` returns the series list to put in your option, or `{ problem }` (a line of text) when the id is not
+installed, there are more than 2,000 rows, or the series' `build` throws. Check for `problem` before you use `series`.
+
+```ts
+import type { BoardsApi, SeriesInput } from "soup";
+
+export function option(boards: BoardsApi, input: SeriesInput): object | string {
+  const drawn = boards.seriesOption("acme.sparkline", input);
+  if ("problem" in drawn) return drawn.problem;
+  return { xAxis: { type: "category", data: input.categories }, yAxis: { type: "value" }, series: drawn.series };
+}
+```
+
 ## What is checked
 
 `registerCard` throws an `Error` naming the card when:

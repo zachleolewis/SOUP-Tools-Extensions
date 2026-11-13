@@ -139,6 +139,7 @@ class NotesSettings extends SettingTab {
       .setDesc("The tag a new note starts with.")
       .addDropdown((d) => {
         for (const t of TAGS) d.addOption(t.id, t.label);
+        d.setLabel("Default tag");
         d.setValue(store.get().settings.defaultTag).onChange((v) => store.setSettings({ defaultTag: v as Tag }));
       });
     new Setting(el)

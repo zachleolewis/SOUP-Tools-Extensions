@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- The match picker and the Default tag setting use SOUP's themed Select (needs extension API 1.1).
+
 ## 1.1.0
 
 - Notes can be about one round or the whole match.

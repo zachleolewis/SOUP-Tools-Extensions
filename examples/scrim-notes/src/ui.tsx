@@ -278,7 +278,7 @@ interface Pending {
 }
 
 export function NotesTab({ active }: { active?: boolean }) {
-  const { Button, EmptyState, inputCls } = kit();
+  const { Button, EmptyState, inputCls, Select } = kit();
   const data = useData();
   const saveError = useSaveError();
   const [query, setQuery] = useState("");
@@ -320,12 +320,11 @@ export function NotesTab({ active }: { active?: boolean }) {
   };
 
   const picker = (
-    <select
-      className={`${inputCls} sn-pick`}
-      aria-label="Start notes on a match from your Library"
+    <Select
+      label="Start notes on a match from your Library"
       value=""
-      onChange={(e) => {
-        const r = replays.find((x) => x.id === e.target.value);
+      onChange={(id) => {
+        const r = replays.find((x) => x.id === id);
         if (!r) return;
         const key = r.matchId ?? `replay:${r.id}`;
         setPending({ key, meta: metaOfReplay(r) });
@@ -333,14 +332,11 @@ export function NotesTab({ active }: { active?: boolean }) {
         setQuery("");
         setTag("all");
       }}
-    >
-      <option value="">{pickable.length ? "Start notes on a Library match..." : "No other Library matches"}</option>
-      {pickable.slice(0, 60).map((r) => (
-        <option key={r.id} value={r.id}>
-          {r.name} {formatDate(r.startedAt ?? r.importedAt)}
-        </option>
-      ))}
-    </select>
+      options={[
+        { value: "", label: pickable.length ? "Start notes on a Library match..." : "No other Library matches" },
+        ...pickable.slice(0, 60).map((r) => ({ value: r.id, label: `${r.name} ${formatDate(r.startedAt ?? r.importedAt)}` })),
+      ]}
+    />
   );
 
   return (

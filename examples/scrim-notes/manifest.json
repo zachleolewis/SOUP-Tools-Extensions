@@ -1,9 +1,9 @@
 {
   "id": "scrim-notes",
   "name": "Scrim Notes",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minAppVersion": "2.3.0",
-  "apiVersion": "^1.0",
+  "apiVersion": "^1.1",
   "description": "Write notes on any match: per round, tagged, searchable, kept per profile and exported to Markdown.",
   "author": "SOUP",
   "links": [{ "label": "Documentation", "url": "https://github.com/zachleolewis/SOUP-Tools-Extensions/tree/main/examples/scrim-notes#readme" }],
