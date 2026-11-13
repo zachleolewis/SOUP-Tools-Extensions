@@ -16,6 +16,8 @@ app.log.info(`${snapshot.replays.length} replays`);
 
 > **Typing.** `app.modules.get` returns the type you give it: `types/soup.d.ts` does not describe each module's API object, because those objects change with SOUP's screens. The tables below show the calls that exist today; declare the part you use as an interface (as above) and check it after SOUP updates. Module APIs listed here are part of the extension API for as long as `apiVersion` is `1.x`: a breaking change to one of them bumps the major version or keeps a compatible wrapper.
 
+`stats` is typed: `types/soup.d.ts` has `StatsApi` (`status`, `query`, `explain`, `sql`, `metrics`, `onMetricsChanged`, `players`, `displayNames`, `datasets`, `onDatasetsChanged`, `onIngested`), so `app.modules.get<StatsApi>("stats")` needs no interface of your own. The module has other members at runtime; they are **not supported** and may change in any SOUP update. `boards` is typed the same way (`BoardsApi`, see [guide 20](20-cards.md)).
+
 `app.library` and `app.matches` are shortcuts for the two most used.
 
 ## library

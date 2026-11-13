@@ -69,7 +69,7 @@ export class HeatmapSettings extends SettingTab {
           set({ startSource: v as Prefs["startSource"] });
           this.ctrl.setView({ source: v as Prefs["startSource"] });
         });
-        d.selectEl.setAttribute("aria-label", "Start with");
+        d.setLabel("Start with");
       });
     new Setting(el)
       .setName("Read the matches again")

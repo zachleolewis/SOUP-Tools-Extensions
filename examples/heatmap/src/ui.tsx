@@ -113,7 +113,7 @@ function MapView({ map, points, glow, dots, weapons, names }: { map: MapInfo; po
 // ---------------------------------------------------------------- the tab
 
 export function HeatmapTab({ active }: { active?: boolean }) {
-  const { Button, EmptyState, inputCls } = kit();
+  const { Button, EmptyState, Select } = kit();
   const snap = useSyncExternalStore(ctx.ctrl.subscribe, ctx.ctrl.get);
   const { view } = snap;
   useEffect(() => {
@@ -215,17 +215,16 @@ export function HeatmapTab({ active }: { active?: boolean }) {
           <Chips<Source> label="Source" value={view.source} onChange={(source) => ctx.ctrl.setView({ source })} options={SOURCES} />
         </div>        <label className="hm-field">
           <span>Player</span>
-          <select className={`${inputCls} hm-select`} aria-label="Player" value={who} onChange={(e) => ctx.ctrl.setView({ who: e.target.value })}>
-            <option value="all">Everyone</option>
-            {me && <option value={me}>You ({players.find((p) => p.subject === me)?.name})</option>}
-            {players
-              .filter((p) => p.subject !== me)
-              .map((p) => (
-                <option key={p.subject} value={p.subject}>
-                  {p.name} ({p.matches})
-                </option>
-              ))}
-          </select>
+          <Select
+            label="Player"
+            value={who}
+            onChange={(v) => ctx.ctrl.setView({ who: v })}
+            options={[
+              { value: "all", label: "Everyone" },
+              ...(me ? [{ value: me, label: `You (${players.find((p) => p.subject === me)?.name})` }] : []),
+              ...players.filter((p) => p.subject !== me).map((p) => ({ value: p.subject, label: `${p.name} (${p.matches})` })),
+            ]}
+          />
         </label>
         <div className="hm-field">
           <span>Show</span>

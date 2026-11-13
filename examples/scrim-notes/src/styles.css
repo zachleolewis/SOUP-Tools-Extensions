@@ -12,7 +12,6 @@
 .sn-split { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; min-height: 380px; }
 @media (max-width: 760px) { .sn-split { grid-template-columns: 1fr; } }
 .sn-side { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-right: 3px solid #000; min-width: 0; }
-.sn-pick { font-size: 0.8rem; }
 .sn-empty-pick { width: min(360px, 100%); margin-top: 6px; }
 .sn-matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow: auto; max-height: 560px; }
 .sn-match { display: flex; flex-direction: column; gap: 2px; width: 100%; text-align: left; padding: 8px 10px; border: 2px solid #000; background: hsl(var(--forest-700)); color: inherit; cursor: pointer; box-shadow: 2px 2px 0 0 #000; }
@@ -33,7 +32,7 @@
 .sn-composer-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .sn-round { width: 92px; }
 .sn-text { resize: vertical; min-height: 64px; font-weight: 500; font-family: inherit; user-select: text; }
-.sn-search, .sn-round, .sn-text, .sn-pick { user-select: text; }
+.sn-search, .sn-round, .sn-text { user-select: text; }
 
 .sn-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .sn-chip { border: 2px solid #000; background: hsl(var(--forest-900)); color: inherit; padding: 3px 10px; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0 0 #000; }

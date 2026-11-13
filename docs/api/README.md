@@ -1,6 +1,6 @@
 # API reference
 
-Generated from [`types/soup.d.ts`](../../types/soup.d.ts) for extension API version **1.0.0** by SOUP's `extension-api:publish` script. Do not edit by hand.
+Generated from [`types/soup.d.ts`](../../types/soup.d.ts) for extension API version **1.1.0** by SOUP's `extension-api:publish` script. Do not edit by hand.
 
 ```ts
 import { Plugin, Notice /* ... */ } from "soup";
@@ -394,6 +394,38 @@ export interface App {
         ErrorCard: ComponentType<any>;
         SettingsSection: ComponentType<any>;
         inputCls: string;
+        /** SOUP's themed dropdown (use it instead of a native `<select>`). */
+        Select: ComponentType<SelectProps>;
+        /** A themed checkbox with a label. */
+        Checkbox: ComponentType<any>;
+        /** A small toggle chip (a filter or tag). */
+        Chip: ComponentType<any>;
+        /** A themed single-line text input. */
+        Input: ComponentType<any>;
+        /** A themed multi-line text input. */
+        Textarea: ComponentType<any>;
+        /** One radio option; put several inside a `RadioGroup`. */
+        Radio: ComponentType<any>;
+        /** A group of radio options with arrow-key movement. */
+        RadioGroup: ComponentType<any>;
+        /** A row of buttons where one is chosen (like tabs for a setting). */
+        Segmented: ComponentType<any>;
+        /** A floating panel anchored to an element. */
+        Popover: ComponentType<any>;
+        /** A spinning "busy" mark. */
+        Spinner: ComponentType<any>;
+        /** A bordered panel; compose with `CardHeader`, `CardTitle` and `CardContent`. */
+        Card: ComponentType<any>;
+        /** The header strip of a `Card`. */
+        CardHeader: ComponentType<any>;
+        /** The title inside a `CardHeader`. */
+        CardTitle: ComponentType<any>;
+        /** The body of a `Card`. */
+        CardContent: ComponentType<any>;
+        /** A titled card with an optional icon and actions. */
+        Panel: ComponentType<any>;
+        /** Renders a Markdown string in SOUP's style. */
+        Markdown: ComponentType<any>;
       };
     };
     /** The theme tokens (CSS variables on <html>) and a way to hear when they change. */
@@ -441,6 +473,18 @@ export interface BoardsApi {
    * Returns a function that removes the card.
    */
   registerCardView<O extends object>(view: CardView<O>): () => void;
+  /**
+   * Add a series a custom chart definition can name (`48_CHART_PRIMITIVES.md`). Throws an Error naming the series when: the id
+   * is not `<namespace>.<name>`; `rules.id` differs; `rules.takes` is not 1 to 4 names; a param name would hold code; `mixes`
+   * names anything but `bar` and `line`; `build` or `sample` is not a function; the id is already registered. Returns a function
+   * that removes it: pass it to `this.register(...)`, so a chart naming it says it is not installed once the extension unloads.
+   */
+  registerSeries<P extends object>(series: SeriesDefinition<P>): () => void;
+  /**
+   * Draw a registered series inside your own card's ECharts option: returns its `series` list, or a `problem` line when the id is
+   * not installed, there are more than 2000 rows, or its `build` throws.
+   */
+  seriesOption(id: string, input: SeriesInput): { series: object[] } | { problem: string };
 }
 ```
 
@@ -638,12 +682,16 @@ export interface DownloadOptions {
 
 ```ts
 export interface DropdownComponent {
+  /** @deprecated the hidden native select kept for 1.0 extensions; use the methods */
   readonly selectEl: HTMLSelectElement;
   addOption(value: string, label: string): this;
   addOptions(options: Record<string, string>): this;
   setValue(v: string): this;
   getValue(): string;
   onChange(cb: (v: string) => void): this;
+  /** The accessible name of the dropdown (default: the row's name). */
+  setLabel(label: string): this;
+  setDisabled(d: boolean): this;
 }
 ```
 
@@ -892,6 +940,132 @@ export interface RiotResponse {
 }
 ```
 
+### SelectOption
+
+```ts
+/** One choice in SOUP's themed `Select` (`app.ui.react.kit.Select`). */
+export interface SelectOption {
+  value: string;
+  label: string;
+  /** Shown in a side panel while the option is highlighted. */
+  description?: string;
+  /** Shown in the list but not pickable. */
+  disabled?: boolean;
+}
+```
+
+### SelectProps
+
+```ts
+/** The props of SOUP's themed `Select`. */
+export interface SelectProps {
+  value: string;
+  onChange(value: string): void;
+  options: SelectOption[];
+  /** The accessible name. */
+  label: string;
+  disabled?: boolean;
+  className?: string;
+  title?: string;
+  /** As wide as its container. */
+  block?: boolean;
+  /** `data-*` attributes go to the trigger button (a test can find the control by them). */
+  [attr: `data-${string}`]: string | undefined;
+}
+```
+
+### SeriesDefinition
+
+```ts
+/**
+ * A chart shape a custom chart definition can name by id (`series[].type`), as `registerSeries` takes it. The id is your
+ * extension's id, a dot and a name (`my-extension.ribbon`). `build` returns ECharts series options (it may hold a `renderItem`
+ * function: your code, never the definition's); name each data item by its category so a click selects it. A board that names a
+ * series nobody registered shows "This chart needs a series that is not installed" and draws nothing.
+ */
+export interface SeriesDefinition<P extends object = object> {
+  id: string;
+  label: string;
+  rules: SeriesRules;
+  /** Chart types and components from SOUP's ECharts copy (for example `CustomChart`), loaded before the next chart is drawn. */
+  echarts?: () => Promise<any[]>;
+  /** May throw: the card then shows the message instead of the chart. */
+  build: (input: SeriesInput<P>) => object[];
+  /** Its help page as Markdown. */
+  docs: string;
+  sample: () => SeriesSample;
+}
+```
+
+### SeriesInput
+
+```ts
+/** What a series' `build` gets for one entry of a definition: the card's categories and the numbers of the columns it takes. */
+export interface SeriesInput<P extends object = object> {
+  /** The category of each value (the x of a vertical chart), in the order drawn. */
+  categories: string[];
+  /** One list per column the series takes, aligned with `categories`, summarized as the definition says. */
+  values: (number | null)[][];
+  /** Raw rows of the taken columns (at most 2,000), for a shape that draws every row. */
+  rows: (number | null)[][];
+  /** The category of each raw row. */
+  rowCategories: string[];
+  /** The entry's `params`, already checked against `rules.params`. */
+  params: Partial<P>;
+  /** The series name (legend and tooltip). */
+  name: string;
+  /** The `data.y` columns it takes, in `rules.takes` order. */
+  columns: string[];
+  /** The chart's tooltip trigger: with `"axis"` name the series once per category; with `"item"` let every mark show its own. */
+  trigger: "axis" | "item";
+  /** The series color, resolved from the theme. Use it and `itemStyle`; never a color of your own. */
+  color: string;
+  horizontal: boolean;
+  /** The selection look of a category: chosen in the chosen color, faded when another is picked. */
+  itemStyle: (category: string) => { color?: string; opacity?: number };
+}
+```
+
+### SeriesRules
+
+```ts
+/**
+ * What a custom chart definition naming the series may hold. Data only: SOUP checks a definition against it before the series'
+ * code runs. `id` is the series id again.
+ */
+export interface SeriesRules {
+  id: string;
+  label: string;
+  /** The role of each `data.y` column one series uses, in order: `["value"]`, or `["from", "to"]` for a pair. 1 to 4. */
+  takes: string[];
+  /** The allowed `params` keys. A key that would hold code, markup or a link (`formatter`, `renderItem`, `url`, ...) is refused. */
+  params?: Record<string, SeriesParamRule>;
+  /** The built-in types it may share a chart with (default none; never a scatter). */
+  mixes?: ("bar" | "line")[];
+  /** What the editor's "Start from" fills in for it. */
+  starter?: {
+    summarize?: "avg" | "sum" | "count" | "min" | "max";
+    sort?: "desc" | "asc" | "label" | "none";
+    limit?: number;
+    params?: Record<string, unknown>;
+    horizontal?: boolean;
+    tooltip?: { show?: boolean; trigger?: "axis" | "item" };
+    legend?: { show?: boolean; orient?: "horizontal" | "vertical"; left?: "left" | "center" | "right"; top?: "top" | "middle" | "bottom" };
+    yAxis?: { show?: boolean; name?: string; scale?: boolean; inverse?: boolean; min?: number; max?: number };
+  };
+}
+```
+
+### SeriesSample
+
+```ts
+/** A tiny frame and a custom chart definition that names the series on it (help and preview). */
+export interface SeriesSample {
+  frame: DataFrame;
+  definition: object;
+}
+```
+
 ### SliderComponent
 
 ```ts
@@ -917,6 +1091,39 @@ export interface SpawnOptions {
    * nowhere (nobody could read them after SOUP exits), so its `stdout` / `stderr` streams stay empty; write to a file instead.
    */
   detached?: boolean;
+}
+```
+
+### StatsApi
+
+```ts
+/**
+ * The public part of the Stats module's API: `app.modules.get<StatsApi>("stats")`. Other members exist at runtime but are not
+ * supported and may change.
+ */
+export interface StatsApi {
+  /** The Library store's state: how many games, whether a sync is running. */
+  status(): Promise<StatsStatus>;
+  /** Run a query over the picked datasets. A field left out of `spec` takes its default. `ticket` names the call for cancelling (leave it out). */
+  query(spec: Partial<QuerySpec>, ticket?: string): Promise<Frame>;
+  /** The SQL a query runs, as text. */
+  explain(spec: Partial<QuerySpec>): Promise<string>;
+  /** Run read-only SQL over the games in `scope` (every dataset of the profile when left out). */
+  sql(text: string, scope?: Scope): Promise<Frame>;
+  /** Every stat that can be asked for (built-in and the user's own). */
+  metrics(): Promise<MetricDef[]>;
+  /** Hear that a stat was saved, deleted, shared or imported. Returns a function that stops listening. */
+  onMetricsChanged(cb: (e: MetricsChanged) => void): () => void;
+  /** The players seen in the scope, optionally matching `search`, at most `limit`. */
+  players(scope?: Scope, search?: string, limit?: number): Promise<PlayerList>;
+  /** The display name of each player id (a `puuid`), by id. */
+  displayNames(puuids: string[]): Promise<Record<string, string>>;
+  /** The datasets: named sets of games a query can read. */
+  datasets(): Promise<DatasetInfo[]>;
+  /** Hear that datasets were made, changed or deleted. Returns a function that stops listening. */
+  onDatasetsChanged(cb: (e: DatasetsChanged) => void): () => void;
+  /** Hear that the Library's store changed (games added, updated or removed). Returns a function that stops listening. */
+  onIngested(cb: (e: StatsIngested) => void): () => void;
 }
 ```
 
@@ -996,6 +1203,17 @@ export interface UploadOptions {
 
 ## Data types
 
+### Account
+
+```ts
+// ---------------------------------------------------------------- data types (generated from SOUP's Rust types)
+export type Account = { puuid: string, 
+/**
+ * Newest first.
+ */
+names: Array<NameSeen>, };
+```
+
 ### CardDefinition
 
 ```ts
@@ -1070,14 +1288,29 @@ export type CardOptionSpec = {
 );
 ```
 
+### ChartToken
+
+```ts
+/** The theme color names a series' `color` param may take (`{ t: "enum", of: [...] }` with these). */
+export type ChartToken = "forest-300" | "forest-500" | "warning" | "destructive" | "foreground";
+```
+
 ### ClientEvent
 
 ```ts
-// ---------------------------------------------------------------- data types (generated from SOUP's Rust types)
 /**
  * A frame from the client's event socket: `[8, "OnJsonApiEvent", { "uri", "eventType", "data" }]`.
  */
 export type ClientEvent = { uri: string, eventType: string | null, data: unknown, };
+```
+
+### Condition
+
+```ts
+/**
+ * One row of the rule builder. `not` turns "is" into "is not", "contains" into "does not contain", and so on.
+ */
+export type Condition = { "field": "mode", not: boolean, values: Array<string>, } | { "field": "map", not: boolean, values: Array<string>, } | { "field": "patch", min: string | null, max: string | null, } | { "field": "played", after: number | null, before: number | null, } | { "field": "playedAt", days: Array<number>, fromHour: number, toHour: number, } | { "field": "players", not: boolean, players: Array<string>, atLeast: number, sameTeam: boolean, } | { "field": "result", not: boolean, player: string, } | { "field": "rounds", min: number | null, max: number | null, } | { "field": "folder", not: boolean, folders: Array<string>, } | { "field": "cardName", not: boolean, text: string, } | { "field": "customName", not: boolean, text: string, } | { "field": "hasReplay", yes: boolean, } | { "field": "inNoOtherDataset", };
 ```
 
 ### ConnectionState
@@ -1098,6 +1331,56 @@ puuid: string | null,
 autoDetected: boolean, };
 ```
 
+### DatasetInfo
+
+```ts
+/**
+ * A dataset as every list and picker shows it.
+ */
+export type DatasetInfo = { id: string, name: string, note: string, kind: Kind, 
+/**
+ * A profile id or `global`.
+ */
+owner: string, 
+/**
+ * The owner profile's name (empty for `global`).
+ */
+ownerName: string, ownerColor: string, 
+/**
+ * Owned by the profile asking.
+ */
+mine: boolean, color: string, rules: Rules | null, auto: boolean, createdMs: number, revision: number, 
+/**
+ * The games it holds now (a library dataset: those still in the owner's Library).
+ */
+summary: Summary, 
+/**
+ * Games put in by hand, and taken out by hand (library datasets).
+ */
+byHand: number, removedByHand: number, import: ImportInfo | null, 
+/**
+ * The profile asking hid it from its pickers.
+ */
+hidden: boolean, 
+/**
+ * Why it cannot be read now (its owner profile was deleted), else empty.
+ */
+problem: string, };
+```
+
+### DatasetsChanged
+
+```ts
+/**
+ * Datasets were made, changed (name, rules, games) or deleted: pickers, Library chips and boards ask again.
+ */
+export type DatasetsChanged = { 
+/**
+ * The datasets that changed (a deleted one included).
+ */
+ids: Array<string>, };
+```
+
 ### DownloadResponse
 
 ```ts
@@ -1114,6 +1397,25 @@ path: string | null,
  * The start of the answer's text when the status is not 2xx (up to 16 KB), to see why.
  */
 errorText: string | null, };
+```
+
+### Filter
+
+```ts
+export type Filter = { "op": "in", field: string, values: Array<string>, } | { "op": "between", field: string, min: number | null, max: number | null, };
+```
+
+### Frame
+
+```ts
+/**
+ * A result: columns and rows (plain JSON values), and where it came from (BD-65).
+ */
+export type Frame = { columns: Array<string>, 
+/**
+ * Arrow type names (`Int64`, `Float64`, `Utf8`, `Boolean`...).
+ */
+types: Array<string>, rows: unknown[][], provenance: Provenance, };
 ```
 
 ### FsEntry
@@ -1147,6 +1449,27 @@ export type Identity = { name: string, tag: string | null, puuid: string, region
 export type ImportExtension = { id: string, version: string | null, repo: string | null, installed: boolean, };
 ```
 
+### ImportInfo
+
+```ts
+/**
+ * What an import read: shown in the review before anything is kept, then kept on the dataset.
+ */
+export type ImportInfo = { 
+/**
+ * Where it was read from (a folder, or the `.soupdataset` file).
+ */
+source: string, importedAtMs: number, 
+/**
+ * Match files found (`.json`, `.json.gz`).
+ */
+files: number, matches: number, 
+/**
+ * Files not imported, by reason (plain English), duplicates included.
+ */
+rejected: { [key in string]?: number }, elapsedMs: number, };
+```
+
 ### ImportPreview
 
 ```ts
@@ -1170,6 +1493,18 @@ unknownModules: Array<string>,
  * Settings that will not be imported because they name a folder of the PC it came from.
  */
 dropped: Array<string>, customThemes: number, hasLogo: boolean, };
+```
+
+### Join
+
+```ts
+export type Join = "all" | "any";
+```
+
+### Kind
+
+```ts
+export type Kind = "library" | "imported";
 ```
 
 ### LibraryAgent
@@ -1320,6 +1655,19 @@ tags: Array<LibraryTag>,
 datasetTags: { [key in string]?: Array<string> }, };
 ```
 
+### LibraryStatus
+
+```ts
+/**
+ * What Stats has read of this profile's Library.
+ */
+export type LibraryStatus = { matches: number, 
+/**
+ * Files that could not be read, by reason (plain English).
+ */
+rejected: { [key in string]?: number }, dataVersion: number, };
+```
+
 ### LibraryTag
 
 ```ts
@@ -1342,6 +1690,88 @@ color: string, };
 export type LibraryUseRef = { kind: string, id: string, };
 ```
 
+### MetricDef
+
+```ts
+export type MetricDef = { 
+/**
+ * Stable forever: `soup.acs`.
+ */
+id: string, version: number, 
+/**
+ * Column header (short, as on vlr.gg).
+ */
+short: string, label: string, 
+/**
+ * What it is and how it is computed (shown on hover, BD-65).
+ */
+description: string, 
+/**
+ * `count`, `ratio`, `percent`, `per_round`, `score`.
+ */
+unit: string, 
+/**
+ * `higher`, `lower` or `neither`: which way is good (color scales).
+ */
+better: string, decimals: number, 
+/**
+ * `rate` or `moment` (BD-212).
+ */
+kind: string, 
+/**
+ * Built into SOUP: read-only, Duplicate makes an editable copy (BD-198).
+ */
+builtIn: boolean, 
+/**
+ * A user stat's owner: a profile id, or `global`; empty for built-ins (BD-199).
+ */
+owner: string, 
+/**
+ * The owner profile's name (empty for built-ins and global stats).
+ */
+ownerName: string, 
+/**
+ * The formula a user stat was written as (empty when written as SQL, and for built-ins).
+ */
+formula: string, 
+/**
+ * How it is computed: for a rate stat one SQL aggregate over `player_rounds`; for a moment stat a condition over `moments`.
+ * Shown in Stats > Advanced ("how it is calculated", owner feedback 3).
+ */
+sql: string, };
+```
+
+### MetricsChanged
+
+```ts
+/**
+ * A user stat was saved, deleted, shared or imported (BD-197): stat lists and the cards that use them ask again.
+ */
+export type MetricsChanged = { 
+/**
+ * The stat that changed (empty after an import of several).
+ */
+id: string, };
+```
+
+### NameRule
+
+```ts
+/**
+ * How an identity's display name is chosen.
+ */
+export type NameRule = "latest" | "fixed" | "generated";
+```
+
+### NameSeen
+
+```ts
+/**
+ * A name seen for an account, with when (from the tables).
+ */
+export type NameSeen = { name: string, firstMs: number, lastMs: number, games: number, };
+```
+
 ### OAuthTokens
 
 ```ts
@@ -1358,6 +1788,33 @@ expiresAt: number, scope: string, idToken: string | null,
  * Every other query parameter of the redirect (for example Google Picker's `picked_file_ids`).
  */
 extra: { [key in string]?: string }, };
+```
+
+### PlayerIdentity
+
+```ts
+/**
+ * One row of Stats > Players.
+ */
+export type PlayerIdentity = { 
+/**
+ * The identity key (its first PUUID); `player` in query results.
+ */
+player: string, display: string, rule: NameRule, accounts: Array<Account>, 
+/**
+ * Games in the scope, across the accounts.
+ */
+games: number, lastMs: number, };
+```
+
+### PlayerList
+
+```ts
+export type PlayerList = { players: Array<PlayerIdentity>, 
+/**
+ * Identities matching the search before the limit.
+ */
+total: number, };
 ```
 
 ### ProfileInfo
@@ -1387,6 +1844,47 @@ libraryFolder: string, };
 export type ProfileKind = "personal" | "team";
 ```
 
+### Provenance
+
+```ts
+export type Provenance = { 
+/**
+ * The stores read, with their data version (`profile@12`, `dataset:abc@3`).
+ */
+sources: Array<string>, sql: string, 
+/**
+ * Metric ids and versions used (`soup.acs@1`).
+ */
+metrics: Array<string>, rows: number, 
+/**
+ * The result was cut to the row cap.
+ */
+truncated: boolean, elapsedMs: number, };
+```
+
+### QuerySpec
+
+```ts
+export type QuerySpec = { scope: Scope, 
+/**
+ * Dimension names from `DIMS`. `player` and `account` add a `name` column first (the identity's display name, or the
+ * account's latest name).
+ */
+groupBy: Array<string>, 
+/**
+ * Metric ids (`soup.acs`).
+ */
+metrics: Array<string>, filters: Array<Filter>, 
+/**
+ * Groups with fewer rounds are left out (vlr.gg's "min rounds").
+ */
+minRounds: number | null, 
+/**
+ * A metric id or a dimension name; descending unless `asc`.
+ */
+sort: string | null, asc: boolean, limit: number | null, };
+```
+
 ### RawSession
 
 ```ts
@@ -1414,6 +1912,103 @@ name: string,
 autoSwitch: boolean, };
 ```
 
+### Rules
+
+```ts
+export type Rules = { join: Join, conditions: Array<Condition>, };
+```
+
+### Scope
+
+```ts
+/**
+ * Which games a query reads: the picked datasets (BD-182, BD-192). Empty: every dataset the asking profile owns.
+ */
+export type Scope = { 
+/**
+ * Dataset ids.
+ */
+datasets: Array<string>, };
+```
+
+### SeriesParamRule
+
+```ts
+/** One allowed key of a series' `params`: a number in a range, one of a list, true or false, or text up to a length. */
+export type SeriesParamRule = { t: "number"; min: number; max: number } | { t: "enum"; of: (string | boolean)[] } | { t: "boolean" } | { t: "text"; max?: number };
+```
+
+### StatsIngested
+
+```ts
+/**
+ * This profile's Library store changed (published after its manifest was saved). Cards and caches holding answers ask
+ * again.
+ */
+export type StatsIngested = { 
+/**
+ * `library` (this profile's Library) or `dataset:<id>` (an imported dataset).
+ */
+source: string, added: number, updated: number, removed: number, dataVersion: number, };
+```
+
+### StatsStatus
+
+```ts
+export type StatsStatus = { library: LibraryStatus, 
+/**
+ * A sync is running now.
+ */
+syncing: boolean, 
+/**
+ * Waiting for the live match to end before reading new games (BD-14).
+ */
+pausedForMatch: boolean, 
+/**
+ * The last sync of this profile's Library, if any ran since SOUP started.
+ */
+lastSync: SyncReport | null, };
+```
+
+### Summary
+
+```ts
+/**
+ * Counts of a set of games, as lists show them.
+ */
+export type Summary = { games: number, firstMs: number | null, lastMs: number | null, 
+/**
+ * Games per map.
+ */
+maps: { [key in string]?: number }, 
+/**
+ * Games per patch.
+ */
+patches: { [key in string]?: number }, 
+/**
+ * Games per mode.
+ */
+modes: { [key in string]?: number }, };
+```
+
+### SyncReport
+
+```ts
+/**
+ * What a sync did (logged, returned by commands, and summed into the status the UI shows).
+ */
+export type SyncReport = { added: number, updated: number, removed: number, unchanged: number, 
+/**
+ * Files that could not be read in this sync, by reason.
+ */
+rejected: { [key in string]?: number }, 
+/**
+ * Files that read fine but could not be written to the store (disk full, folder locked): logged, not remembered, tried again
+ * by the next sync.
+ */
+failed: number, elapsedMs: number, };
+```
+
 ### TransferProgress
 
 ```ts
@@ -1438,4 +2033,13 @@ headers: { [key in string]?: string }, text: string, };
 
 ```ts
 export type WatchEvent = { "kind": "created", path: string, } | { "kind": "modified", path: string, } | { "kind": "removed", path: string, };
+```
+
+### Why
+
+```ts
+/**
+ * Why a game is in a library dataset.
+ */
+export type Why = "rule" | "hand";
 ```

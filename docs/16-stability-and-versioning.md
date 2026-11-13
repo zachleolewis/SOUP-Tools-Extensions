@@ -2,7 +2,7 @@
 
 ## The API version
 
-The extension API has its own version, `apiVersion` (`import { apiVersion } from "soup"`). Your manifest says which versions you support (`"apiVersion": "^1.0"`); SOUP loads your extension only if its API version is in that range.
+The extension API has its own version, `apiVersion` (`import { apiVersion } from "soup"`). Your manifest says which versions you support (`"apiVersion": "^1.0"`, or `"^1.1"` to use what 1.1 added); SOUP loads your extension only if its API version is in that range.
 
 | Change | Version |
 |---|---|
@@ -11,6 +11,10 @@ The extension API has its own version, `apiVersion` (`import { apiVersion } from
 | A removal, or a change of behaviour that can break an extension | **Major** (2.0). The previous major keeps working for at least one SOUP release, and an extension that uses it shows "Built for an older SOUP API" on its row |
 
 So `^1.0` is safe: everything you wrote against 1.0 keeps working on 1.x.
+
+### 1.1.0 (additive)
+
+API 1.1.0 only adds: the kit's `Select` and other controls (`app.ui.react.kit`), `DropdownComponent.setLabel` and `setDisabled` (`addDropdown` now draws SOUP's themed Select; `selectEl` still works but is deprecated), `BoardsApi.seriesOption`, and the typed `StatsApi`. An extension built for 1.0 runs unchanged. An extension that uses any of these must say `"apiVersion": "^1.1"`, so an older SOUP shows "Built for a newer SOUP API" instead of failing at run time. The examples that use the themed `Select` (`heatmap`, `scrim-notes`) need `^1.1`.
 
 ## What counts as the API
 

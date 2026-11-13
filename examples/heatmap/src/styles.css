@@ -9,7 +9,6 @@
 
 .hm-controls { display: flex; flex-direction: column; gap: 12px; padding: 12px; border: 2px solid #000; background: hsl(var(--forest-700) / 0.6); }
 .hm-field { display: flex; flex-direction: column; gap: 3px; font-family: "Space Mono", monospace; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: hsl(var(--foreground) / 0.7); }
-.hm-select { font-size: 0.8rem; text-transform: none; }
 .hm-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .hm-chip { border: 2px solid #000; background: hsl(var(--forest-900)); color: inherit; padding: 5px 11px; font-family: "Space Mono", monospace; font-size: 0.72rem; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0 0 #000; }
 .hm-chip:hover { background: hsl(var(--forest-500)); }
